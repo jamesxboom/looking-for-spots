@@ -43,17 +43,17 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .status-dot.green { background: #22c55e; }
 .status-dot.yellow { background: #eab308; }
 .status-dot.red { background: #ef4444; }
-.card-stats { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #64748b; margin-top: 4px; }
+.card-stats { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #64748b; margin-top: 4px; flex-wrap: wrap; }
 .card-stats strong { color: #1e293b; font-weight: 600; }
 .status-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
 .badge-green { background: #f0fdf4; color: #15803d; }
 .badge-yellow { background: #fefce8; color: #a16207; }
 .badge-red { background: #fef2f2; color: #dc2626; }
 .card-reason { font-size: 12px; color: #64748b; margin-top: 6px; line-height: 1.4; }
-.trend-arrow { font-weight: 600; }
+.trend-arrow { font-weight: 700; font-size: 13px; }
 .trend-arrow.rising { color: #ef4444; }
 .trend-arrow.falling { color: #22c55e; }
-.trend-arrow.stable { color: #64748b; }
+.trend-arrow.stable { color: #94a3b8; }
 
 /* Map */
 .map-container { flex: 1; position: relative; }
@@ -62,12 +62,12 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 /* Detail Panel */
 .detail-panel { width: 400px; background: white; border-left: 1px solid #e2e8f0; overflow-y: auto; flex-shrink: 0; display: none; }
 .detail-panel.visible { display: block; }
-.detail-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; }
+.detail-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; background: white; z-index: 10; }
 .back-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #2563eb; padding: 4px; }
 .detail-body { padding: 20px; }
 .detail-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.detail-type { font-size: 13px; color: #64748b; margin-bottom: 16px; }
-.detail-status-bar { padding: 14px 16px; border-radius: 10px; margin-bottom: 20px; }
+.detail-type { font-size: 12px; color: #94a3b8; margin-bottom: 16px; font-family: monospace; }
+.detail-status-bar { padding: 14px 16px; border-radius: 10px; margin-bottom: 14px; }
 .detail-status-bar.green { background: #f0fdf4; border: 1px solid #bbf7d0; }
 .detail-status-bar.yellow { background: #fefce8; border: 1px solid #fef08a; }
 .detail-status-bar.red { background: #fef2f2; border: 1px solid #fecaca; }
@@ -86,23 +86,23 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .flow-range-bar { margin-bottom: 20px; }
 .flow-range-label { font-size: 12px; font-weight: 500; color: #64748b; margin-bottom: 8px; }
 .flow-bar { height: 8px; background: #e2e8f0; border-radius: 4px; position: relative; overflow: visible; }
-.flow-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
-.flow-bar-fill.green { background: #22c55e; }
-.flow-bar-fill.yellow { background: #eab308; }
-.flow-bar-fill.red { background: #ef4444; }
 .flow-marker { position: absolute; top: -4px; width: 16px; height: 16px; background: #1e293b; border: 2px solid white; border-radius: 50%; transform: translateX(-50%); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 .flow-range-labels { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 6px; }
 
-.chart-container { margin-bottom: 20px; }
-.chart-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-.chart-svg { width: 100%; height: 120px; }
+.mode-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8fafc; border-radius: 8px; margin-bottom: 8px; }
+.mode-card-left { flex: 1; }
+.mode-card-label { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.mode-card-reason { font-size: 12px; color: #64748b; }
 
 .detail-notes { background: #f8fafc; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-.detail-notes-title { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.detail-notes-title { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #475569; }
 .detail-notes-text { font-size: 13px; color: #64748b; line-height: 1.5; }
 
 .detail-gauge { font-size: 12px; color: #94a3b8; padding-top: 12px; border-top: 1px solid #e2e8f0; }
 .detail-disclaimer { font-size: 11px; color: #94a3b8; margin-top: 8px; font-style: italic; }
+
+.trend-box { background: #f1f5f9; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: #475569; }
+.trend-box strong { color: #1e293b; }
 
 /* Footer */
 .footer { background: white; border-top: 1px solid #e2e8f0; padding: 8px 20px; font-size: 11px; color: #94a3b8; text-align: center; flex-shrink: 0; }
@@ -110,8 +110,6 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 /* Loading */
 .loading-overlay { position: absolute; inset: 0; background: rgba(248,250,252,0.9); display: flex; align-items: center; justify-content: center; z-index: 500; }
 .loading-spinner { font-size: 14px; color: #64748b; }
-.skeleton { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* Leaflet popup */
 .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important; padding: 0 !important; }
@@ -143,7 +141,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
   <div class="main">
     <div class="sidebar">
       <div class="sidebar-header">
-        <h2 id="river-count">15 Rivers</h2>
+        <h2 id="river-count">Loading...</h2>
         <select class="sort-select" id="sort-select" onchange="renderSidebar()">
           <option value="status">Sort by Status</option>
           <option value="name">Sort by Name</option>
@@ -167,7 +165,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
     </div>
   </div>
   <div class="footer">
-    Data from <a href="https://dreamflows.com" target="_blank" style="color:#64748b;">DreamFlows</a> &middot; Provisional, not verified &middot; Not for safety decisions &middot; Auto-refreshes every 15 min
+    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a> &amp; <a href="https://cdec.water.ca.gov" target="_blank" style="color:#64748b;">CDEC</a> &middot; Provisional, not verified &middot; Not for safety decisions &middot; Auto-refreshes every 15 min
   </div>
 </div>
 
@@ -176,13 +174,13 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 // ============================
 // STATE
 // ============================
-let RIVERS = {};       // Populated from API
-let riverData = {};
+let RIVERS = {};    // id -> { name, lat, lng, riverType, fishingModes, modeStatuses }
+let riverData = {}; // id -> { cfs, tempF, status, reason, trend, trendContext, updatedAt }
 let selectedRiverId = null;
 let map, markers = {};
 
 // ============================
-// DATA LOADING — from local Python server scraping DreamFlows
+// DATA LOADING — FastAPI backend (/api/rivers returns a list directly)
 // ============================
 async function fetchAllData() {
   const btn = document.getElementById('refresh-btn');
@@ -194,44 +192,55 @@ async function fetchAllData() {
     const resp = await fetch('/api/rivers');
     if (!resp.ok) throw new Error(`API ${resp.status}`);
     const data = await resp.json();
-    const rivers = data.rivers || [];
 
-    // Populate RIVERS config and riverData from server response
+    // FastAPI returns a flat list; old start.py returned {rivers: [...], fetched_at}
+    const rivers = Array.isArray(data) ? data : (data.rivers || []);
+
+    // Build RIVERS config and riverData from server response
+    // FastAPI uses camelCase: latitude, longitude, currentCfs, waterTempF, statusReason
     RIVERS = {};
     riverData = {};
     for (const r of rivers) {
       RIVERS[r.id] = {
-        name: r.name, lat: r.lat, lng: r.lng,
-        siteId: r.siteId,
-        triggers: r.triggers,
-        hydrograph: r.hydrograph,
-        elevation: r.elevation,
+        name: r.name,
+        lat: r.latitude,
+        lng: r.longitude,
+        riverType: r.riverType || '',
+        fishingModes: r.fishingModes || ['wade'],
+        modeStatuses: r.modeStatuses || null,
       };
       riverData[r.id] = {
-        cfs: r.cfs, tempF: r.tempF, stageFt: r.stageFt,
-        status: r.status, reason: r.reason,
-        readingTime: r.readingTime, dfStatus: r.dfStatus,
+        cfs: r.currentCfs !== undefined ? r.currentCfs : (r.cfs !== undefined ? r.cfs : null),
+        tempF: r.waterTempF !== undefined ? r.waterTempF : (r.tempF !== undefined ? r.tempF : null),
+        status: r.status || 'red',
+        reason: r.statusReason || r.reason || 'No data',
+        trend: r.trend || 'stable',
+        trendContext: r.trendContext || '',
+        updatedAt: r.updatedAt || null,
       };
     }
 
-    // Create markers if first load
+    // Create map markers on first load
     if (Object.keys(markers).length === 0) {
       for (const [id, river] of Object.entries(RIVERS)) {
         const marker = L.circleMarker([river.lat, river.lng], {
-          radius: 14, fillColor: '#94a3b8', fillOpacity: 0.8,
+          radius: 14, fillColor: '#94a3b8', fillOpacity: 0.85,
           color: 'white', weight: 3, opacity: 1
         }).addTo(map);
         marker.on('click', () => selectRiver(id));
         markers[id] = marker;
       }
-      // Fit bounds
       const bounds = Object.values(RIVERS).map(r => [r.lat, r.lng]);
       if (bounds.length) map.fitBounds(bounds, { padding: [60, 60] });
     }
 
-    document.getElementById('update-time').textContent = data.fetched_at
-      ? `Updated ${new Date(data.fetched_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`
-      : '';
+    // Update timestamp display
+    const fetchedAt = Array.isArray(data) ? null : data.fetched_at;
+    const firstUpdatedAt = rivers.length > 0 ? (rivers[0].updatedAt || fetchedAt) : fetchedAt;
+    if (firstUpdatedAt) {
+      document.getElementById('update-time').textContent =
+        `Updated ${new Date(firstUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
 
     const g = rivers.filter(r => r.status === 'green').length;
     const y = rivers.filter(r => r.status === 'yellow').length;
@@ -240,7 +249,7 @@ async function fetchAllData() {
 
   } catch (e) {
     console.error('Failed to load data:', e);
-    document.getElementById('river-count').textContent = 'Error loading data — is start.py running?';
+    document.getElementById('river-count').textContent = 'Error loading data';
   }
 
   document.getElementById('loading-overlay').style.display = 'none';
@@ -255,13 +264,12 @@ async function fetchAllData() {
 // MAP
 // ============================
 function initMap() {
-  map = L.map('map', { zoomControl: true }).setView([38.9, -120.4], 8);
+  map = L.map('map', { zoomControl: true }).setView([38.9, -120.4], 7);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
     maxZoom: 18,
     subdomains: 'abcd'
   }).addTo(map);
-  // Markers are created dynamically in fetchAllData() once river data arrives
 }
 
 function updateMarkers() {
@@ -272,13 +280,18 @@ function updateMarkers() {
     const color = colors[data.status] || '#94a3b8';
     markers[id].setStyle({ fillColor: color });
 
-    // Popup content
-    const cfsStr = data.cfs !== null ? `<strong>${data.cfs.toLocaleString()}</strong> cfs` : '— cfs';
-    const tempStr = data.tempF !== null ? ` · <strong>${data.tempF.toFixed(1)}</strong>°F` : '';
+    const cfsStr = data.cfs !== null && data.cfs !== undefined
+      ? `<strong>${Math.round(data.cfs).toLocaleString()}</strong> cfs`
+      : '— cfs';
+    const tempStr = data.tempF !== null && data.tempF !== undefined
+      ? ` · <strong>${data.tempF.toFixed(1)}</strong>°F`
+      : '';
+    const trendSymbol = data.trend === 'rising' ? ' ↑' : data.trend === 'falling' ? ' ↓' : '';
+
     markers[id].bindPopup(`
       <div class="popup-content">
         <div class="popup-name">${river.name}</div>
-        <div class="popup-stats">${cfsStr}${tempStr}</div>
+        <div class="popup-stats">${cfsStr}${tempStr}${trendSymbol}</div>
         <div class="popup-stats" style="margin-top:4px;font-size:12px;color:${color};font-weight:600;">
           ${data.status.toUpperCase()} — ${data.reason}
         </div>
@@ -297,27 +310,44 @@ function renderSidebar() {
   const statusOrder = { green: 0, yellow: 1, red: 2 };
 
   let entries = Object.entries(RIVERS).map(([id, river]) => ({
-    id, river, data: riverData[id] || { status: 'red', reason: 'Loading...', cfs: null, tempF: null }
+    id, river, data: riverData[id] || { status: 'red', reason: 'Loading...', cfs: null, tempF: null, trend: 'stable' }
   }));
 
-  if (sort === 'status') entries.sort((a, b) => (statusOrder[a.data.status] - statusOrder[b.data.status]) || a.river.name.localeCompare(b.river.name));
+  if (sort === 'status') entries.sort((a, b) =>
+    (statusOrder[a.data.status] ?? 3) - (statusOrder[b.data.status] ?? 3) || a.river.name.localeCompare(b.river.name));
   else if (sort === 'name') entries.sort((a, b) => a.river.name.localeCompare(b.river.name));
   else if (sort === 'cfs') entries.sort((a, b) => (b.data.cfs || 0) - (a.data.cfs || 0));
 
   list.innerHTML = entries.map(({ id, river, data }) => {
     const sel = id === selectedRiverId ? ' selected' : '';
-    const cfs = data.cfs !== null ? `<strong>${data.cfs.toLocaleString()}</strong> cfs` : '— cfs';
-    const temp = data.tempF !== null ? `${data.tempF.toFixed(1)}°F` : '—';
+    const cfs = data.cfs !== null && data.cfs !== undefined
+      ? `<strong>${Math.round(data.cfs).toLocaleString()}</strong> cfs`
+      : '— cfs';
+    const temp = data.tempF !== null && data.tempF !== undefined
+      ? `· ${data.tempF.toFixed(1)}°F` : '';
+    const trend = data.trend || 'stable';
+    const trendSymbol = trend === 'rising' ? '↑' : trend === 'falling' ? '↓' : '→';
+    const trendClass = trend === 'rising' ? 'rising' : trend === 'falling' ? 'falling' : 'stable';
     const badge = `<span class="status-badge badge-${data.status}">${data.status}</span>`;
+
+    // Show mode badges for dual-mode rivers
+    const modeIcons = river.fishingModes && river.fishingModes.length > 1
+      ? `<span style="font-size:11px;color:#94a3b8;">${river.fishingModes.map(m => m === 'wade' ? '🥾' : m === 'drift' ? '🚣' : '⛵').join('')}</span>`
+      : '';
+
     return `
       <div class="river-card status-${data.status}${sel}" onclick="selectRiver('${id}')">
         <div class="card-top">
           <div class="card-info">
             <div class="card-name">
               <span class="status-dot ${data.status}"></span>
-              ${river.name}
+              ${river.name} ${modeIcons}
             </div>
-            <div class="card-stats">${cfs} &middot; ${temp}</div>
+            <div class="card-stats">
+              ${cfs}
+              <span class="trend-arrow ${trendClass}">${trendSymbol}</span>
+              ${temp}
+            </div>
           </div>
           ${badge}
         </div>
@@ -328,95 +358,109 @@ function renderSidebar() {
 }
 
 // ============================
-// DETAIL PANEL
+// RIVER SELECTION
 // ============================
 function selectRiver(id) {
   selectedRiverId = id;
   renderSidebar();
 
-  // Highlight marker
   for (const [mid, marker] of Object.entries(markers)) {
     marker.setStyle({ weight: mid === id ? 4 : 3, opacity: 1 });
-    if (mid === id) marker.setRadius(18); else marker.setRadius(14);
+    marker.setRadius(mid === id ? 18 : 14);
   }
 
-  // Pan map
   const river = RIVERS[id];
   map.flyTo([river.lat, river.lng], 9, { duration: 0.8 });
 
-  // Show detail
   showDetail(id);
 }
 
-function showDetail(id) {
+// ============================
+// DETAIL PANEL
+// ============================
+async function showDetail(id) {
   const panel = document.getElementById('detail-panel');
   const body = document.getElementById('detail-body');
   panel.classList.add('visible');
 
   const river = RIVERS[id];
   const data = riverData[id] || {};
+
+  // Show river name immediately while detail loads
+  body.innerHTML = `
+    <div class="detail-name">${river.name}</div>
+    <div style="padding:16px 0;color:#94a3b8;font-size:13px;">Loading details...</div>
+  `;
+
+  let detail = null;
+  try {
+    const resp = await fetch(`/api/rivers/${id}`);
+    if (resp.ok) detail = await resp.json();
+  } catch (e) {
+    console.error('Failed to load river detail:', e);
+  }
+
+  renderDetailPanel(id, river, data, detail);
+}
+
+function renderDetailPanel(id, river, data, detail) {
+  const body = document.getElementById('detail-body');
+
   const cfs = data.cfs;
   const tempF = data.tempF;
-  const stageFt = data.stageFt;
   const status = data.status || 'red';
   const reason = data.reason || 'No data';
-  const triggers = river.triggers || {};
+  const trendContext = detail?.trendContext || data.trendContext || '';
+
+  // Thresholds from detail response (camelCase)
+  const thresholds = detail?.thresholds || null;
+  const greenFloor = thresholds?.greenFloor;
+  const greenCeiling = thresholds?.greenCeiling;
+  const yellowFloor = thresholds?.yellowFloor;
+  const yellowCeiling = thresholds?.yellowCeiling;
+  const rapidChangeThreshold = thresholds?.rapidChangeThreshold;
+
+  const notes = detail?.notes || '';
+  const gaugeInfo = detail?.gaugeInfo || '';
+  const modeStatuses = detail?.modeStatuses || river.modeStatuses || null;
+  const cfsChange = detail?.cfsChange6hr;
+  const blownOutCfs = detail?.blownOutCfs;
+  const dangerousWadeCfs = detail?.dangerousWadeCfs;
 
   const statusLabels = { green: 'Go Fish', yellow: 'Fishable With Caveats', red: "Don't Go" };
 
-  // Determine display ranges from DreamFlows trigger levels
-  const minGood = triggers.minGood;
-  const minOpt = triggers.minOpt;
-  const maxOpt = triggers.maxOpt;
-  const maxGood = triggers.maxGood;
-
-  // Use optimal range if available, otherwise good range
-  const rangeMin = minOpt || minGood;
-  const rangeMax = maxOpt || maxGood;
-
   // Flow range bar
   let barHtml = '';
-  if (cfs !== null && maxGood && maxGood < 50000) {
-    const maxRange = maxGood * 1.3;
-    const pct = Math.min(100, Math.max(0, (cfs / maxRange) * 100));
+  if (cfs !== null && cfs !== undefined && greenCeiling && greenCeiling < 50000) {
+    const maxRange = Math.max((yellowCeiling || greenCeiling * 1.5) * 1.1, cfs * 1.2);
+    const pct = Math.min(98, Math.max(2, (cfs / maxRange) * 100));
 
-    // Green zone (good range)
-    const goodStart = minGood ? (minGood / maxRange) * 100 : 0;
-    const goodEnd = maxGood ? (maxGood / maxRange) * 100 : 100;
-
-    // Optimal zone (if available)
-    let optHtml = '';
-    if (minOpt && maxOpt) {
-      const optStart = (minOpt / maxRange) * 100;
-      const optEnd = (maxOpt / maxRange) * 100;
-      optHtml = `<div style="position:absolute;left:${optStart}%;width:${optEnd-optStart}%;height:100%;background:#22c55e;opacity:0.4;border-radius:4px;"></div>`;
-    }
-
-    const rangeLabel = rangeMin && rangeMax
-      ? `${rangeMin.toLocaleString()} — ${rangeMax.toLocaleString()} (${minOpt ? 'optimal' : 'good'})`
-      : 'Range not set';
+    const yStart = yellowFloor ? Math.max(0, (yellowFloor / maxRange) * 100) : 0;
+    const yEnd = yellowCeiling ? Math.min(100, (yellowCeiling / maxRange) * 100) : 100;
+    const gStart = greenFloor ? (greenFloor / maxRange) * 100 : 0;
+    const gEnd = greenCeiling ? (greenCeiling / maxRange) * 100 : 100;
 
     barHtml = `
       <div class="flow-range-bar">
-        <div class="flow-range-label">Current Flow vs. Target Range</div>
-        <div class="flow-bar" style="position:relative;">
-          <div style="position:absolute;left:${goodStart}%;width:${goodEnd-goodStart}%;height:100%;background:#bbf7d0;border-radius:4px;"></div>
-          ${optHtml}
+        <div class="flow-range-label">Flow vs. Target Range</div>
+        <div class="flow-bar">
+          <div style="position:absolute;left:${yStart}%;width:${yEnd - yStart}%;height:100%;background:#fef9c3;border-radius:4px;"></div>
+          <div style="position:absolute;left:${gStart}%;width:${gEnd - gStart}%;height:100%;background:#bbf7d0;border-radius:4px;"></div>
           <div class="flow-marker" style="left:${pct}%;"></div>
         </div>
         <div class="flow-range-labels">
-          <span>0</span>
-          <span style="color:#15803d;font-weight:600;">${rangeLabel}</span>
-          <span>${Math.round(maxRange).toLocaleString()}</span>
+          <span>${yellowFloor ? yellowFloor.toLocaleString() : '0'}</span>
+          <span style="color:#15803d;font-weight:600;">${greenFloor ? greenFloor.toLocaleString() : '—'}–${greenCeiling ? greenCeiling.toLocaleString() : '—'} cfs optimal</span>
+          <span>${yellowCeiling ? yellowCeiling.toLocaleString() : ''}</span>
         </div>
       </div>
     `;
   }
 
-  // Temp display
+  // Temperature display
   let tempHtml = '—';
   let tempContext = '';
-  if (tempF !== null) {
+  if (tempF !== null && tempF !== undefined) {
     tempHtml = `${tempF.toFixed(1)}°F`;
     if (tempF > 68) tempContext = '<span style="color:#dc2626;font-weight:600;">Too warm — do not fish</span>';
     else if (tempF > 65) tempContext = '<span style="color:#a16207;">Warming — fish early</span>';
@@ -424,37 +468,88 @@ function showDetail(id) {
     else tempContext = '<span style="color:#64748b;">Cool</span>';
   }
 
-  // Optimal/good range display for stat box
-  let rangeDisplay = '—';
-  if (rangeMin && rangeMax) {
-    rangeDisplay = `${rangeMin.toLocaleString()}–${rangeMax.toLocaleString()}`;
-  } else if (minGood && maxGood) {
-    rangeDisplay = `${minGood.toLocaleString()}–${maxGood.toLocaleString()}`;
+  // 6-hour change
+  let changeHtml = '';
+  if (cfsChange !== null && cfsChange !== undefined) {
+    const sign = cfsChange > 0 ? '+' : '';
+    const isRapid = rapidChangeThreshold && Math.abs(cfsChange) > rapidChangeThreshold;
+    const changeColor = isRapid ? '#dc2626' : '#64748b';
+    changeHtml = `<span style="font-size:11px;color:${changeColor};">${sign}${Math.round(cfsChange).toLocaleString()} / 6hr</span>`;
   }
-  const rangeType = minOpt ? 'optimal cfs' : 'good cfs';
 
-  // Hydrograph link
-  const hydrographHtml = river.hydrograph
-    ? `<div class="chart-container">
-        <div class="chart-title">Flow History (DreamFlows)</div>
-        <a href="${river.hydrograph}" target="_blank" style="display:block;text-align:center;padding:16px;color:#2563eb;font-size:13px;text-decoration:none;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
-          View hydrograph on DreamFlows →
-        </a>
-       </div>`
+  // Optimal range for stat box
+  let rangeDisplay = '—';
+  if (greenFloor && greenCeiling) rangeDisplay = `${greenFloor.toLocaleString()}–${greenCeiling.toLocaleString()}`;
+
+  // Mode statuses for dual-mode rivers (wade + drift)
+  let modeHtml = '';
+  if (modeStatuses && modeStatuses.length > 1) {
+    const modeRows = modeStatuses.map(ms => {
+      const borderColor = ms.status === 'green' ? '#22c55e' : ms.status === 'yellow' ? '#eab308' : '#ef4444';
+      const label = ms.mode === 'wade' ? '🥾 Wade Fishing' : ms.mode === 'drift' ? '🚣 Drift Boat' : ms.mode;
+      const reason = ms.statusReason || ms.status_reason || '';
+      return `
+        <div class="mode-card" style="border-left:3px solid ${borderColor};">
+          <div class="mode-card-left">
+            <div class="mode-card-label">${label}</div>
+            <div class="mode-card-reason">${reason}</div>
+          </div>
+          <span class="status-badge badge-${ms.status}">${ms.status}</span>
+        </div>
+      `;
+    }).join('');
+    modeHtml = `
+      <div style="margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Fishing Mode Breakdown</div>
+        ${modeRows}
+      </div>
+    `;
+  }
+
+  // Trend context callout
+  const trendHtml = trendContext ? `
+    <div class="trend-box">
+      <strong>Trend:</strong> ${trendContext}
+    </div>
+  ` : '';
+
+  // Notes about the fishery
+  const notesHtml = notes ? `
+    <div class="detail-notes">
+      <div class="detail-notes-title">About This Fishery</div>
+      <div class="detail-notes-text">${notes}</div>
+    </div>
+  ` : '';
+
+  // River type label
+  const typeLabel = river.riverType
+    ? river.riverType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     : '';
+
+  // Blown out / danger warnings
+  const warningParts = [];
+  if (blownOutCfs) warningParts.push(`Blown out &gt; ${blownOutCfs.toLocaleString()} cfs`);
+  if (dangerousWadeCfs) warningParts.push(`Dangerous wading &gt; ${dangerousWadeCfs.toLocaleString()} cfs`);
+  const warningHtml = warningParts.length ? `
+    <div style="font-size:11px;color:#dc2626;margin-bottom:16px;background:#fef2f2;padding:8px 12px;border-radius:6px;border:1px solid #fecaca;">
+      ⚠ ${warningParts.join(' · ')}
+    </div>
+  ` : '';
 
   body.innerHTML = `
     <div class="detail-name">${river.name}</div>
-    <div class="detail-type">DreamFlows Site ${river.siteId}${river.elevation ? ` · Elev ${river.elevation.toLocaleString()} ft` : ''}</div>
+    <div class="detail-type">${gaugeInfo || typeLabel}</div>
     <div class="detail-status-bar ${status}">
       <div class="detail-status-text ${status}">${statusLabels[status] || status.toUpperCase()}</div>
       <div class="detail-status-reason">${reason}</div>
     </div>
+    ${trendHtml}
+    ${warningHtml}
     <div class="stat-grid">
       <div class="stat-box">
         <div class="stat-label">Current Flow</div>
-        <div class="stat-value">${cfs !== null ? cfs.toLocaleString() : '—'}</div>
-        <div class="stat-context">cfs${data.readingTime ? ' · ' + data.readingTime : ''}</div>
+        <div class="stat-value">${cfs !== null && cfs !== undefined ? Math.round(cfs).toLocaleString() : '—'}</div>
+        <div class="stat-context">cfs ${changeHtml}</div>
       </div>
       <div class="stat-box">
         <div class="stat-label">Water Temp</div>
@@ -462,22 +557,25 @@ function showDetail(id) {
         <div class="stat-context">${tempContext}</div>
       </div>
       <div class="stat-box">
-        <div class="stat-label">Target Range</div>
+        <div class="stat-label">Optimal Range</div>
         <div class="stat-value" style="font-size:16px;">${rangeDisplay}</div>
-        <div class="stat-context">${rangeType}</div>
+        <div class="stat-context">cfs for fly fishing</div>
       </div>
       <div class="stat-box">
-        <div class="stat-label">Stage Height</div>
-        <div class="stat-value">${stageFt !== null && stageFt !== undefined ? stageFt.toFixed(2) : '—'}</div>
-        <div class="stat-context">ft</div>
+        <div class="stat-label">Access</div>
+        <div class="stat-value" style="font-size:16px;">${(river.fishingModes || ['wade']).map(m =>
+          m === 'wade' ? '🥾' : m === 'drift' ? '🚣' : m === 'boat' ? '⛵' : m
+        ).join(' ')}</div>
+        <div class="stat-context">${(river.fishingModes || ['wade']).join(', ')}</div>
       </div>
     </div>
     ${barHtml}
-    ${hydrographHtml}
+    ${modeHtml}
+    ${notesHtml}
     <div class="detail-gauge">
-      <a href="https://dreamflows.com/flows.php?page=real&zone=canv&form=norm" target="_blank" style="color:#64748b;text-decoration:none;">View on DreamFlows →</a>
+      ${gaugeInfo ? `<span>${gaugeInfo}</span>` : ''}
     </div>
-    <div class="detail-disclaimer">Data is provisional and subject to revision. Do not use as the sole basis for safety decisions.</div>
+    <div class="detail-disclaimer">Data from USGS &amp; CDEC. Provisional and subject to revision. Not for safety decisions.</div>
   `;
 }
 

@@ -11,7 +11,7 @@ from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.config import RIVERS
@@ -58,6 +58,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# HTML frontend — lives at repo root (two levels up from backend/app/)
+_HTML_PATH = Path(__file__).parent.parent.parent / "norcal-flows.html"
+
+
+@app.get("/", include_in_schema=False)
+async def serve_frontend():
+    """Serve the single-page frontend."""
+    if _HTML_PATH.exists():
+        return FileResponse(_HTML_PATH, media_type="text/html")
+    return {"error": "Frontend not found", "looked_at": str(_HTML_PATH)}
 
 # ============================================================================
 # In-memory data storage (prototype only — not a database)
@@ -279,18 +290,6 @@ def schedule_fetcher(app: FastAPI) -> None:
 # ============================================================================
 # API Endpoints
 # ============================================================================
-
-# norcal-flows.html lives at the project root (two levels up from backend/app/)
-_HTML_FILE = Path(__file__).parent.parent.parent / "norcal-flows.html"
-
-
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    """Serve the main dashboard (norcal-flows.html)."""
-    if _HTML_FILE.exists():
-        return HTMLResponse(content=_HTML_FILE.read_text(encoding="utf-8"))
-    return RedirectResponse(url="/docs")
-
 
 @app.get("/api/health", response_model=HealthResponse)
 async def health_check():
