@@ -22,7 +22,7 @@ from urllib.parse import urlparse
 from pathlib import Path
 from datetime import datetime
 
-PORT = 5555
+PORT = int(os.environ.get("PORT", 5555))
 DIR = Path(__file__).parent
 
 # ============================================================
@@ -280,11 +280,12 @@ def main():
     print(f"  Server: http://localhost:{PORT}")
     print(f"  Press Ctrl+C to stop\n")
 
-    def open_browser():
-        time.sleep(1)
-        webbrowser.open(f'http://localhost:{PORT}')
-
-    threading.Thread(target=open_browser, daemon=True).start()
+    # Only open browser locally (not on cloud hosts)
+    if not os.environ.get("PORT"):
+        def open_browser():
+            time.sleep(1)
+            webbrowser.open(f'http://localhost:{PORT}')
+        threading.Thread(target=open_browser, daemon=True).start()
 
     try:
         server.serve_forever()
