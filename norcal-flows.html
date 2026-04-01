@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Looking For Spots — Fly Fishing Conditions</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafc; color: #1e293b; height: 100vh; overflow: hidden; }
+
+/* Layout */
+.app { display: flex; height: 100vh; flex-direction: column; }
+.header { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; z-index: 1000; }
+.header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.header h1 span { font-size: 24px; }
+.header-right { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #64748b; }
+.refresh-btn { background: #2563eb; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; }
+.refresh-btn:hover { background: #1d4ed8; }
+.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 380px; background: #f8fafc; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+.sidebar-header { padding: 14px 16px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+.sidebar-header h2 { font-size: 14px; font-weight: 600; }
+.sort-select { font-size: 12px; padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 6px; background: white; font-family: inherit; color: #1e293b; }
+.river-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+/* River Card */
+.river-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease; }
+.river-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #cbd5e1; transform: translateY(-1px); }
+.river-card.selected { border: 2px solid #2563eb; box-shadow: 0 4px 16px rgba(37,99,235,0.15); }
+.river-card.status-green { border-left: 4px solid #22c55e; }
+.river-card.status-yellow { border-left: 4px solid #eab308; }
+.river-card.status-red { border-left: 4px solid #ef4444; }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.card-info { flex: 1; min-width: 0; }
+.card-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.green { background: #22c55e; }
+.status-dot.yellow { background: #eab308; }
+.status-dot.red { background: #ef4444; }
+.card-stats { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #64748b; margin-top: 4px; }
+.card-stats strong { color: #1e293b; font-weight: 600; }
+.status-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+.badge-green { background: #f0fdf4; color: #15803d; }
+.badge-yellow { background: #fefce8; color: #a16207; }
+.badge-red { background: #fef2f2; color: #dc2626; }
+.card-reason { font-size: 12px; color: #64748b; margin-top: 6px; line-height: 1.4; }
+.trend-arrow { font-weight: 600; }
+.trend-arrow.rising { color: #ef4444; }
+.trend-arrow.falling { color: #22c55e; }
+.trend-arrow.stable { color: #64748b; }
+
+/* Map */
+.map-container { flex: 1; position: relative; }
+#map { width: 100%; height: 100%; }
+
+/* Detail Panel */
+.detail-panel { width: 400px; background: white; border-left: 1px solid #e2e8f0; overflow-y: auto; flex-shrink: 0; display: none; }
+.detail-panel.visible { display: block; }
+.detail-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; }
+.back-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #2563eb; padding: 4px; }
+.detail-body { padding: 20px; }
+.detail-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.detail-type { font-size: 13px; color: #64748b; margin-bottom: 16px; }
+.detail-status-bar { padding: 14px 16px; border-radius: 10px; margin-bottom: 20px; }
+.detail-status-bar.green { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.detail-status-bar.yellow { background: #fefce8; border: 1px solid #fef08a; }
+.detail-status-bar.red { background: #fef2f2; border: 1px solid #fecaca; }
+.detail-status-text { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.detail-status-text.green { color: #15803d; }
+.detail-status-text.yellow { color: #a16207; }
+.detail-status-text.red { color: #dc2626; }
+.detail-status-reason { font-size: 13px; color: #64748b; }
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.stat-box { background: #f8fafc; border-radius: 10px; padding: 14px; }
+.stat-label { font-size: 11px; font-weight: 500; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.stat-value { font-size: 20px; font-weight: 700; }
+.stat-context { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+.flow-range-bar { margin-bottom: 20px; }
+.flow-range-label { font-size: 12px; font-weight: 500; color: #64748b; margin-bottom: 8px; }
+.flow-bar { height: 8px; background: #e2e8f0; border-radius: 4px; position: relative; overflow: visible; }
+.flow-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+.flow-bar-fill.green { background: #22c55e; }
+.flow-bar-fill.yellow { background: #eab308; }
+.flow-bar-fill.red { background: #ef4444; }
+.flow-marker { position: absolute; top: -4px; width: 16px; height: 16px; background: #1e293b; border: 2px solid white; border-radius: 50%; transform: translateX(-50%); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.flow-range-labels { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 6px; }
+
+.chart-container { margin-bottom: 20px; }
+.chart-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.chart-svg { width: 100%; height: 120px; }
+
+.detail-notes { background: #f8fafc; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+.detail-notes-title { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.detail-notes-text { font-size: 13px; color: #64748b; line-height: 1.5; }
+
+.detail-gauge { font-size: 12px; color: #94a3b8; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+.detail-disclaimer { font-size: 11px; color: #94a3b8; margin-top: 8px; font-style: italic; }
+
+/* Footer */
+.footer { background: white; border-top: 1px solid #e2e8f0; padding: 8px 20px; font-size: 11px; color: #94a3b8; text-align: center; flex-shrink: 0; }
+
+/* Loading */
+.loading-overlay { position: absolute; inset: 0; background: rgba(248,250,252,0.9); display: flex; align-items: center; justify-content: center; z-index: 500; }
+.loading-spinner { font-size: 14px; color: #64748b; }
+.skeleton { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Leaflet popup */
+.leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important; padding: 0 !important; }
+.leaflet-popup-content { margin: 0 !important; }
+.leaflet-popup-tip { box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important; }
+.popup-content { padding: 12px 16px; min-width: 180px; }
+.popup-name { font-weight: 600; font-size: 14px; margin-bottom: 6px; font-family: 'Inter', sans-serif; }
+.popup-stats { font-size: 13px; color: #64748b; font-family: 'Inter', sans-serif; line-height: 1.6; }
+.popup-stats strong { color: #1e293b; }
+.popup-link { display: block; margin-top: 8px; font-size: 12px; color: #2563eb; font-family: 'Inter', sans-serif; cursor: pointer; }
+.popup-link:hover { text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .detail-panel { position: absolute; bottom: 0; left: 0; right: 0; width: 100%; max-height: 60vh; z-index: 1000; border-left: none; border-top: 1px solid #e2e8f0; border-radius: 16px 16px 0 0; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1><span>🎣</span> Looking For Spots</h1>
+    <div class="header-right">
+      <span id="update-time"></span>
+      <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Refresh</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2 id="river-count">15 Rivers</h2>
+        <select class="sort-select" id="sort-select" onchange="renderSidebar()">
+          <option value="status">Sort by Status</option>
+          <option value="name">Sort by Name</option>
+          <option value="cfs">Sort by Flow</option>
+        </select>
+      </div>
+      <div class="river-list" id="river-list"></div>
+    </div>
+    <div class="map-container">
+      <div id="map"></div>
+      <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">Loading river conditions...</div>
+      </div>
+    </div>
+    <div class="detail-panel" id="detail-panel">
+      <div class="detail-header">
+        <button class="back-btn" onclick="closeDetail()">←</button>
+        <span style="font-weight:600;font-size:14px;">River Details</span>
+      </div>
+      <div class="detail-body" id="detail-body"></div>
+    </div>
+  </div>
+  <div class="footer">
+    Data from <a href="https://dreamflows.com" target="_blank" style="color:#64748b;">DreamFlows</a> &middot; Provisional, not verified &middot; Not for safety decisions &middot; Auto-refreshes every 15 min
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ============================
+// STATE
+// ============================
+let RIVERS = {};       // Populated from API
+let riverData = {};
+let selectedRiverId = null;
+let map, markers = {};
+
+// ============================
+// DATA LOADING — from local Python server scraping DreamFlows
+// ============================
+async function fetchAllData() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  document.getElementById('loading-overlay').style.display = 'flex';
+
+  try {
+    const resp = await fetch('/api/rivers');
+    if (!resp.ok) throw new Error(`API ${resp.status}`);
+    const data = await resp.json();
+    const rivers = data.rivers || [];
+
+    // Populate RIVERS config and riverData from server response
+    RIVERS = {};
+    riverData = {};
+    for (const r of rivers) {
+      RIVERS[r.id] = {
+        name: r.name, lat: r.lat, lng: r.lng,
+        siteId: r.siteId,
+        triggers: r.triggers,
+        hydrograph: r.hydrograph,
+        elevation: r.elevation,
+      };
+      riverData[r.id] = {
+        cfs: r.cfs, tempF: r.tempF, stageFt: r.stageFt,
+        status: r.status, reason: r.reason,
+        readingTime: r.readingTime, dfStatus: r.dfStatus,
+      };
+    }
+
+    // Create markers if first load
+    if (Object.keys(markers).length === 0) {
+      for (const [id, river] of Object.entries(RIVERS)) {
+        const marker = L.circleMarker([river.lat, river.lng], {
+          radius: 14, fillColor: '#94a3b8', fillOpacity: 0.8,
+          color: 'white', weight: 3, opacity: 1
+        }).addTo(map);
+        marker.on('click', () => selectRiver(id));
+        markers[id] = marker;
+      }
+      // Fit bounds
+      const bounds = Object.values(RIVERS).map(r => [r.lat, r.lng]);
+      if (bounds.length) map.fitBounds(bounds, { padding: [60, 60] });
+    }
+
+    document.getElementById('update-time').textContent = data.fetched_at
+      ? `Updated ${new Date(data.fetched_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`
+      : '';
+
+    const g = rivers.filter(r => r.status === 'green').length;
+    const y = rivers.filter(r => r.status === 'yellow').length;
+    const rd = rivers.filter(r => r.status === 'red').length;
+    document.getElementById('river-count').textContent = `${g} Green · ${y} Yellow · ${rd} Red`;
+
+  } catch (e) {
+    console.error('Failed to load data:', e);
+    document.getElementById('river-count').textContent = 'Error loading data — is start.py running?';
+  }
+
+  document.getElementById('loading-overlay').style.display = 'none';
+  btn.disabled = false;
+  btn.textContent = 'Refresh';
+
+  renderSidebar();
+  updateMarkers();
+}
+
+// ============================
+// MAP
+// ============================
+function initMap() {
+  map = L.map('map', { zoomControl: true }).setView([38.9, -120.4], 8);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    maxZoom: 18,
+    subdomains: 'abcd'
+  }).addTo(map);
+  // Markers are created dynamically in fetchAllData() once river data arrives
+}
+
+function updateMarkers() {
+  const colors = { green: '#22c55e', yellow: '#eab308', red: '#ef4444' };
+  for (const [id, river] of Object.entries(RIVERS)) {
+    const data = riverData[id];
+    if (!data || !markers[id]) continue;
+    const color = colors[data.status] || '#94a3b8';
+    markers[id].setStyle({ fillColor: color });
+
+    // Popup content
+    const cfsStr = data.cfs !== null ? `<strong>${data.cfs.toLocaleString()}</strong> cfs` : '— cfs';
+    const tempStr = data.tempF !== null ? ` · <strong>${data.tempF.toFixed(1)}</strong>°F` : '';
+    markers[id].bindPopup(`
+      <div class="popup-content">
+        <div class="popup-name">${river.name}</div>
+        <div class="popup-stats">${cfsStr}${tempStr}</div>
+        <div class="popup-stats" style="margin-top:4px;font-size:12px;color:${color};font-weight:600;">
+          ${data.status.toUpperCase()} — ${data.reason}
+        </div>
+        <div class="popup-link" onclick="selectRiver('${id}')">View details →</div>
+      </div>
+    `);
+  }
+}
+
+// ============================
+// SIDEBAR
+// ============================
+function renderSidebar() {
+  const list = document.getElementById('river-list');
+  const sort = document.getElementById('sort-select').value;
+  const statusOrder = { green: 0, yellow: 1, red: 2 };
+
+  let entries = Object.entries(RIVERS).map(([id, river]) => ({
+    id, river, data: riverData[id] || { status: 'red', reason: 'Loading...', cfs: null, tempF: null }
+  }));
+
+  if (sort === 'status') entries.sort((a, b) => (statusOrder[a.data.status] - statusOrder[b.data.status]) || a.river.name.localeCompare(b.river.name));
+  else if (sort === 'name') entries.sort((a, b) => a.river.name.localeCompare(b.river.name));
+  else if (sort === 'cfs') entries.sort((a, b) => (b.data.cfs || 0) - (a.data.cfs || 0));
+
+  list.innerHTML = entries.map(({ id, river, data }) => {
+    const sel = id === selectedRiverId ? ' selected' : '';
+    const cfs = data.cfs !== null ? `<strong>${data.cfs.toLocaleString()}</strong> cfs` : '— cfs';
+    const temp = data.tempF !== null ? `${data.tempF.toFixed(1)}°F` : '—';
+    const badge = `<span class="status-badge badge-${data.status}">${data.status}</span>`;
+    return `
+      <div class="river-card status-${data.status}${sel}" onclick="selectRiver('${id}')">
+        <div class="card-top">
+          <div class="card-info">
+            <div class="card-name">
+              <span class="status-dot ${data.status}"></span>
+              ${river.name}
+            </div>
+            <div class="card-stats">${cfs} &middot; ${temp}</div>
+          </div>
+          ${badge}
+        </div>
+        <div class="card-reason">${data.reason}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================
+// DETAIL PANEL
+// ============================
+function selectRiver(id) {
+  selectedRiverId = id;
+  renderSidebar();
+
+  // Highlight marker
+  for (const [mid, marker] of Object.entries(markers)) {
+    marker.setStyle({ weight: mid === id ? 4 : 3, opacity: 1 });
+    if (mid === id) marker.setRadius(18); else marker.setRadius(14);
+  }
+
+  // Pan map
+  const river = RIVERS[id];
+  map.flyTo([river.lat, river.lng], 9, { duration: 0.8 });
+
+  // Show detail
+  showDetail(id);
+}
+
+function showDetail(id) {
+  const panel = document.getElementById('detail-panel');
+  const body = document.getElementById('detail-body');
+  panel.classList.add('visible');
+
+  const river = RIVERS[id];
+  const data = riverData[id] || {};
+  const cfs = data.cfs;
+  const tempF = data.tempF;
+  const stageFt = data.stageFt;
+  const status = data.status || 'red';
+  const reason = data.reason || 'No data';
+  const triggers = river.triggers || {};
+
+  const statusLabels = { green: 'Go Fish', yellow: 'Fishable With Caveats', red: "Don't Go" };
+
+  // Determine display ranges from DreamFlows trigger levels
+  const minGood = triggers.minGood;
+  const minOpt = triggers.minOpt;
+  const maxOpt = triggers.maxOpt;
+  const maxGood = triggers.maxGood;
+
+  // Use optimal range if available, otherwise good range
+  const rangeMin = minOpt || minGood;
+  const rangeMax = maxOpt || maxGood;
+
+  // Flow range bar
+  let barHtml = '';
+  if (cfs !== null && maxGood && maxGood < 50000) {
+    const maxRange = maxGood * 1.3;
+    const pct = Math.min(100, Math.max(0, (cfs / maxRange) * 100));
+
+    // Green zone (good range)
+    const goodStart = minGood ? (minGood / maxRange) * 100 : 0;
+    const goodEnd = maxGood ? (maxGood / maxRange) * 100 : 100;
+
+    // Optimal zone (if available)
+    let optHtml = '';
+    if (minOpt && maxOpt) {
+      const optStart = (minOpt / maxRange) * 100;
+      const optEnd = (maxOpt / maxRange) * 100;
+      optHtml = `<div style="position:absolute;left:${optStart}%;width:${optEnd-optStart}%;height:100%;background:#22c55e;opacity:0.4;border-radius:4px;"></div>`;
+    }
+
+    const rangeLabel = rangeMin && rangeMax
+      ? `${rangeMin.toLocaleString()} — ${rangeMax.toLocaleString()} (${minOpt ? 'optimal' : 'good'})`
+      : 'Range not set';
+
+    barHtml = `
+      <div class="flow-range-bar">
+        <div class="flow-range-label">Current Flow vs. Target Range</div>
+        <div class="flow-bar" style="position:relative;">
+          <div style="position:absolute;left:${goodStart}%;width:${goodEnd-goodStart}%;height:100%;background:#bbf7d0;border-radius:4px;"></div>
+          ${optHtml}
+          <div class="flow-marker" style="left:${pct}%;"></div>
+        </div>
+        <div class="flow-range-labels">
+          <span>0</span>
+          <span style="color:#15803d;font-weight:600;">${rangeLabel}</span>
+          <span>${Math.round(maxRange).toLocaleString()}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // Temp display
+  let tempHtml = '—';
+  let tempContext = '';
+  if (tempF !== null) {
+    tempHtml = `${tempF.toFixed(1)}°F`;
+    if (tempF > 68) tempContext = '<span style="color:#dc2626;font-weight:600;">Too warm — do not fish</span>';
+    else if (tempF > 65) tempContext = '<span style="color:#a16207;">Warming — fish early</span>';
+    else if (tempF > 50) tempContext = '<span style="color:#15803d;">Good range</span>';
+    else tempContext = '<span style="color:#64748b;">Cool</span>';
+  }
+
+  // Optimal/good range display for stat box
+  let rangeDisplay = '—';
+  if (rangeMin && rangeMax) {
+    rangeDisplay = `${rangeMin.toLocaleString()}–${rangeMax.toLocaleString()}`;
+  } else if (minGood && maxGood) {
+    rangeDisplay = `${minGood.toLocaleString()}–${maxGood.toLocaleString()}`;
+  }
+  const rangeType = minOpt ? 'optimal cfs' : 'good cfs';
+
+  // Hydrograph link
+  const hydrographHtml = river.hydrograph
+    ? `<div class="chart-container">
+        <div class="chart-title">Flow History (DreamFlows)</div>
+        <a href="${river.hydrograph}" target="_blank" style="display:block;text-align:center;padding:16px;color:#2563eb;font-size:13px;text-decoration:none;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+          View hydrograph on DreamFlows →
+        </a>
+       </div>`
+    : '';
+
+  body.innerHTML = `
+    <div class="detail-name">${river.name}</div>
+    <div class="detail-type">DreamFlows Site ${river.siteId}${river.elevation ? ` · Elev ${river.elevation.toLocaleString()} ft` : ''}</div>
+    <div class="detail-status-bar ${status}">
+      <div class="detail-status-text ${status}">${statusLabels[status] || status.toUpperCase()}</div>
+      <div class="detail-status-reason">${reason}</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-label">Current Flow</div>
+        <div class="stat-value">${cfs !== null ? cfs.toLocaleString() : '—'}</div>
+        <div class="stat-context">cfs${data.readingTime ? ' · ' + data.readingTime : ''}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Water Temp</div>
+        <div class="stat-value">${tempHtml}</div>
+        <div class="stat-context">${tempContext}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Target Range</div>
+        <div class="stat-value" style="font-size:16px;">${rangeDisplay}</div>
+        <div class="stat-context">${rangeType}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Stage Height</div>
+        <div class="stat-value">${stageFt !== null && stageFt !== undefined ? stageFt.toFixed(2) : '—'}</div>
+        <div class="stat-context">ft</div>
+      </div>
+    </div>
+    ${barHtml}
+    ${hydrographHtml}
+    <div class="detail-gauge">
+      <a href="https://dreamflows.com/flows.php?page=real&zone=canv&form=norm" target="_blank" style="color:#64748b;text-decoration:none;">View on DreamFlows →</a>
+    </div>
+    <div class="detail-disclaimer">Data is provisional and subject to revision. Do not use as the sole basis for safety decisions.</div>
+  `;
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('visible');
+  selectedRiverId = null;
+  for (const marker of Object.values(markers)) {
+    marker.setRadius(14);
+    marker.setStyle({ weight: 3 });
+  }
+  renderSidebar();
+}
+
+// ============================
+// INIT
+// ============================
+initMap();
+fetchAllData();
+// Auto-refresh every 15 minutes
+setInterval(fetchAllData, 15 * 60 * 1000);
+</script>
+</body>
+</html>
