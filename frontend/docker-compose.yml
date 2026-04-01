@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      - ./src:/app/src
+      - ./index.html:/app/index.html
+    depends_on:
+      - backend
+    networks:
+      - norcal-flows
+
+  backend:
+    build: ../backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/norcal_flows
+      - ENVIRONMENT=development
+    depends_on:
+      - postgres
+    networks:
+      - norcal-flows
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=norcal_flows
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - norcal-flows
+
+volumes:
+  postgres_data:
+
+networks:
+  norcal-flows:
+    driver: bridge
