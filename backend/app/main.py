@@ -6,10 +6,12 @@ Main application entry point with API endpoints and scheduled data fetching.
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, RedirectResponse
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.config import RIVERS
@@ -277,6 +279,18 @@ def schedule_fetcher(app: FastAPI) -> None:
 # ============================================================================
 # API Endpoints
 # ============================================================================
+
+# norcal-flows.html lives at the project root (two levels up from backend/app/)
+_HTML_FILE = Path(__file__).parent.parent.parent / "norcal-flows.html"
+
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    """Serve the main dashboard (norcal-flows.html)."""
+    if _HTML_FILE.exists():
+        return HTMLResponse(content=_HTML_FILE.read_text(encoding="utf-8"))
+    return RedirectResponse(url="/docs")
+
 
 @app.get("/api/health", response_model=HealthResponse)
 async def health_check():
