@@ -167,6 +167,11 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .nav-btn.active { color: #2563eb; }
 .nav-btn:hover { color: #1e293b; }
 
+/* Accessibility */
+.skip-link:focus { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); background: #2563eb; color: white; padding: 8px 16px; border-radius: 6px; z-index: 9999; width: auto; height: auto; overflow: visible; }
+.river-card:focus-visible, .nav-btn:focus-visible, .refresh-btn:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.card-favorite, .detail-favorite { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
+
 /* Responsive */
 @media (max-width: 900px) {
   .main { position: relative; }
@@ -198,8 +203,9 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 </style>
 </head>
 <body>
+<a href="#river-list" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:9999;">Skip to river list</a>
 <div class="app">
-  <div class="header">
+  <header class="header">
     <h1><span>🎣</span> Looking For Spots</h1>
     <div class="header-right">
       <span id="update-time"></span>
@@ -209,20 +215,20 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
         <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Refresh</button>
       </div>
     </div>
-  </div>
-  <div class="main">
+  </header>
+  <main class="main">
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2 id="river-count">Loading...</h2>
+        <h2 id="river-count" aria-live="polite">Loading...</h2>
         <div class="filter-group">
           <button class="favorites-toggle" id="favorites-toggle" onclick="toggleFavoritesFilter()">My Spots</button>
-          <select class="sort-select" id="sort-select" onchange="renderSidebar()">
+          <select class="sort-select" id="sort-select" onchange="renderSidebar()" aria-label="Sort rivers by">
             <option value="status">Sort by Status</option>
             <option value="name">Sort by Name</option>
             <option value="cfs">Sort by Flow</option>
             <option value="distance">Sort by Distance</option>
           </select>
-          <select class="distance-filter" id="distance-filter" onchange="renderSidebar()" style="display:none;">
+          <select class="distance-filter" id="distance-filter" onchange="renderSidebar()" style="display:none;" aria-label="Filter by distance">
             <option value="any">Any Distance</option>
             <option value="30min">< 30 min</option>
             <option value="1hour">< 1 hour</option>
@@ -247,15 +253,15 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
       </div>
       <div class="detail-body" id="detail-body"></div>
     </div>
-  </div>
-  <div class="mobile-bottom-nav" id="mobile-bottom-nav">
+  </main>
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
     <button class="nav-btn active" id="nav-list" onclick="setViewMode('list')" title="List View">📋</button>
     <button class="nav-btn" id="nav-map" onclick="setViewMode('map')" title="Map View">🗺️</button>
     <button class="nav-btn" id="nav-spots" onclick="setViewMode('list');toggleFavoritesFilter();" title="My Spots">⭐</button>
-  </div>
-  <div class="footer">
+  </nav>
+  <footer class="footer">
     Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a> &middot; Provisional, not verified &middot; Not for safety decisions &middot; Auto-refreshes every 15 min
-  </div>
+  </footer>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -976,6 +982,160 @@ const HATCH_DATA = {
     10: "Stonefly nymphs, midges, October caddis. Nymph, dry-dropper.",
     11: "Stonefly nymphs, midges. Nymphing.",
     12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  fall_river: {
+    1: "Midges, stonefly nymphs. Slow presentation.",
+    2: "Midges, early BWO, stonefly nymphs. Nymphing.",
+    3: "Green Drake (#10-12), PMD (#16-18), stoneflies. Emerging.",
+    4: "Green Drake, PMD, caddis, Callibaetis. Heavy PMD spinner falls.",
+    5: "PMD (#14-18 peak), Green Drake tail, caddis, Callibaetis. Heavy hatch.",
+    6: "PMD continues, Trico (#24), BWO starting. Dry fly.",
+    7: "PMD tail, Trico, BWO, Gray Drake (#12). Morning dries.",
+    8: "Trico, BWO, caddis, Callibaetis (#14-18). Dry and nymph.",
+    9: "Trico, BWO, caddis, Callibaetis peak. Long hatches.",
+    10: "Callibaetis peak, Trico tail, BWO. Dry fly.",
+    11: "BWO, Trico tail, midges. Occasional dry.",
+    12: "Midges, stonefly nymphs. Slow deep nymphing."
+  },
+  trinity_lewiston: {
+    1: "Stonefly nymphs, midges. Dark patterns, indicator rigs.",
+    2: "Stonefly nymphs, early stoneflies, midges. Nymphing.",
+    3: "March Browns, Green Drakes starting, BWO, stoneflies. Emerging.",
+    4: "March Browns tail, Green Drakes, BWO, early caddis. Dry-dropper.",
+    5: "PMD starting, Green Drakes, caddis (#14-18), Little Yellow Stones. Dry-nymph.",
+    6: "PMD, caddis, Little Yellow Stones, Green Drakes tail. Dry dominant.",
+    7: "Caddis (#14-18) major, Little Yellow Stones, PMD. Evening caddis dries.",
+    8: "Caddis, Little Yellow Stones tail, PMD, midges. Evening dry fly.",
+    9: "Caddis, Little Yellow Stones tail. Transition patterns.",
+    10: "October caddis (#6-8), caddis tail, midges. October caddis dries.",
+    11: "Stonefly nymphs, midges, October caddis tail. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing, dark patterns."
+  },
+  trinity_douglas_city: {
+    1: "Stonefly nymphs, midges. Dark patterns, indicator rigs.",
+    2: "Stonefly nymphs, early stoneflies, midges. Nymphing.",
+    3: "March Browns, Green Drakes starting, BWO. Emerging.",
+    4: "March Browns tail, Green Drakes, BWO, early caddis. Dry-dropper.",
+    5: "PMD, Green Drakes, caddis, Little Yellow Stones. Dry-nymph.",
+    6: "PMD, caddis, Little Yellow Stones, Green Drakes tail. Dry.",
+    7: "Caddis major, Little Yellow Stones, PMD. Evening caddis dries.",
+    8: "Caddis, Little Yellow Stones tail, PMD. Evening dry fly.",
+    9: "Caddis, Little Yellow Stones tail. Transition.",
+    10: "October caddis (#6-8), caddis tail. October caddis dries.",
+    11: "Stonefly nymphs, midges. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  donner_creek: {
+    1: "Midges, stonefly nymphs. Small patterns.",
+    2: "Midges, early stoneflies. Small nymphs.",
+    3: "Early BWO, midges. Small patterns #18-22.",
+    4: "BWO, small caddis, midges. Small dries starting.",
+    5: "Caddis (#16-18), BWO, small stoneflies. Dry-nymph.",
+    6: "Caddis, BWO, small mayflies. Dry fly.",
+    7: "Caddis, BWO, midges. Small dries.",
+    8: "Caddis, midges. Small patterns.",
+    9: "Caddis tail, midges. Transition.",
+    10: "BWO, midges, stonefly nymphs. Small nymphs.",
+    11: "Midges, stonefly nymphs. Small nymphs.",
+    12: "Midges, stonefly nymphs. Small patterns."
+  },
+  upper_truckee: {
+    1: "Midges, stonefly nymphs. Slow nymphing.",
+    2: "Midges, early stoneflies. Nymph fishing.",
+    3: "Early BWO, midges. Nymphing.",
+    4: "BWO, small caddis, stonefly nymphs. Nymph-emerge.",
+    5: "Caddis, BWO, PMD starting. Dry-nymph.",
+    6: "PMD, caddis, BWO. Dry fly in meadow sections.",
+    7: "PMD, caddis, BWO. Dry fly.",
+    8: "Caddis, midges. Dry and nymph.",
+    9: "Caddis tail, midges. Transition.",
+    10: "BWO, midges. Nymph and dry.",
+    11: "Midges, stonefly nymphs. Nymphing.",
+    12: "Midges, stonefly nymphs. Slow nymphing."
+  },
+  clear_creek: {
+    1: "Stonefly nymphs, midges. Deep nymphing.",
+    2: "Stonefly nymphs, early BWO. Nymphing.",
+    3: "BWO, early caddis, stoneflies. Nymph-emerge.",
+    4: "Caddis, BWO, stoneflies. Dry-dropper.",
+    5: "Caddis (#14-16), PMD, stoneflies. Dry-nymph.",
+    6: "Caddis, PMD, Little Yellow Stones. Dry fly.",
+    7: "Caddis, Little Yellow Stones, midges. Evening dries.",
+    8: "Caddis, midges. Dry and nymph.",
+    9: "Caddis tail, midges. Transition.",
+    10: "October caddis, BWO, midges. October caddis dries.",
+    11: "BWO, midges, stonefly nymphs. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  west_walker_coleville: {
+    1: "Stonefly nymphs, midges. Attractor patterns.",
+    2: "Stonefly nymphs, early stoneflies. Nymph fishing.",
+    3: "Early stoneflies, BWO, midges. Attractor dries.",
+    4: "Stoneflies, BWO, early caddis. Attractor nymphs.",
+    5: "Golden Stoneflies, caddis, Little Yellow Stones, PMD. Attractors.",
+    6: "Caddis (#14-18), Golden Stoneflies, Little Yellow Stones. Attractor patterns.",
+    7: "Caddis, Golden Stoneflies, Little Yellow Stones. Elk Hair Caddis.",
+    8: "Caddis, Little Yellow Stones tail, midges. Attractor patterns.",
+    9: "Caddis tail, stonefly nymphs. Transition.",
+    10: "Stonefly nymphs, midges, caddis tail. Attractors.",
+    11: "Stonefly nymphs, midges. Nymphing.",
+    12: "Stonefly nymphs, midges. Attractor patterns."
+  },
+  west_walker_upper: {
+    1: "Stonefly nymphs, midges. Slow presentation.",
+    2: "Stonefly nymphs, early insects. Nymph fishing.",
+    3: "Early stoneflies, BWO. Nymphing.",
+    4: "Stoneflies, BWO, early caddis. Nymph-dry.",
+    5: "Golden Stoneflies, caddis, Little Yellow Stones. Dry-nymph.",
+    6: "Caddis, Golden Stoneflies, Little Yellow Stones. Dry.",
+    7: "Caddis, Golden Stoneflies, Little Yellow Stones. Dry.",
+    8: "Caddis, Little Yellow Stones tail, midges. Mixed.",
+    9: "Caddis tail, stonefly nymphs. Transition.",
+    10: "Stonefly nymphs, midges. Nymph-dry.",
+    11: "Stonefly nymphs, midges. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  tuolumne_hh: {
+    1: "Stonefly nymphs, midges. Deep nymphing.",
+    2: "Early stoneflies, midges. Nymphing.",
+    3: "Golden Stoneflies starting, midges. Nymph-emerge.",
+    4: "Golden Stoneflies, early caddis. Nymph-dry.",
+    5: "Golden Stoneflies, caddis, Little Yellow Stones. Dry-nymph.",
+    6: "Little Yellow Stones, PMD, caddis emerging. Best season.",
+    7: "Little Yellow Stones, PMD, caddis varieties. Dry fly.",
+    8: "PMD, caddis, Dark Red Quills. Dry dominant.",
+    9: "PMD, caddis, Yellow Quills, Trico. Dry fly.",
+    10: "Trico, October Caddis, PMD tail. October caddis.",
+    11: "October Caddis tail, Trico tail. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  tuolumne_lagrange: {
+    1: "Stonefly nymphs, midges. Deep nymphing.",
+    2: "Early stoneflies, midges. Nymphing.",
+    3: "BWO, early caddis. Nymph-emerge.",
+    4: "Caddis, BWO, stoneflies. Dry-dropper.",
+    5: "Caddis, PMD, Little Yellow Stones. Dry-nymph.",
+    6: "Caddis, PMD, Little Yellow Stones. Dry fly.",
+    7: "Caddis, Little Yellow Stones, midges. Evening dries.",
+    8: "Caddis, midges. Dry and nymph.",
+    9: "Caddis tail, midges. Transition.",
+    10: "October caddis, BWO. October caddis dries.",
+    11: "BWO, stonefly nymphs. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  san_joaquin_friant: {
+    1: "Midges, stonefly nymphs. Deep nymphing.",
+    2: "Midges, early BWO. Nymphing.",
+    3: "BWO, early caddis. Nymph-emerge.",
+    4: "Caddis, BWO, stoneflies. Dry-dropper.",
+    5: "Caddis, PMD. Dry-nymph.",
+    6: "Caddis, PMD, midges. Dry fly.",
+    7: "Caddis, midges. Evening dries.",
+    8: "Caddis, midges. Dry and nymph.",
+    9: "Caddis tail, midges. Transition.",
+    10: "BWO, midges. Nymph and dry.",
+    11: "BWO, midges. Nymphing.",
+    12: "Midges, stonefly nymphs. Deep nymphing."
   }
 };
 
@@ -1368,7 +1528,7 @@ function renderSidebar() {
     }
 
     return `
-      <div class="river-card status-${data.status}${sel}" onclick="selectRiver('${id}')">
+      <div class="river-card status-${data.status}${sel}" onclick="selectRiver('${id}')" tabindex="0" role="button" aria-label="${river.name} - ${data.status}">
         <button class="card-favorite${isFav ? ' active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${id}')" title="Add to My Spots">${isFav ? '★' : '☆'}</button>
         <div class="card-top">
           <div class="card-info">
@@ -1602,13 +1762,24 @@ function renderDetailPanel(id, river, data, detail) {
   let hatchEntry = HATCH_DATA[hatchKey]?.[month];
 
   if (!hatchEntry) {
-    // Try prefix matching
-    const prefix = id.split('_')[0];
-    for (const [key, data] of Object.entries(HATCH_DATA)) {
-      if (key.startsWith(prefix)) {
-        hatchEntry = data[month];
+    // Try progressively shorter prefix matching
+    const parts = id.split('_');
+    for (let len = parts.length - 1; len >= 1; len--) {
+      const prefix = parts.slice(0, len).join('_');
+      if (HATCH_DATA[prefix]) {
+        hatchEntry = HATCH_DATA[prefix][month];
         break;
       }
+      // Also try matching against keys that start with this prefix
+      if (!hatchEntry) {
+        for (const [key, data] of Object.entries(HATCH_DATA)) {
+          if (key.startsWith(prefix + '_') || key === prefix) {
+            hatchEntry = data[month];
+            break;
+          }
+        }
+      }
+      if (hatchEntry) break;
     }
   }
 
