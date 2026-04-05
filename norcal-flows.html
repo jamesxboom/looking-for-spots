@@ -217,11 +217,17 @@ const RIVERS = {
     thresholds: { greenFloor:300, greenCeiling:500, yellowFloor:200, yellowCeiling:600, rapidChange:50 },
     notes: "Spring-fed, very stable. Optimal 300–500 cfs. Boat/tube fishing only — no wading."
   },
-  pit_river: {
+  pit_river_3: {
     name: "Pit River (Pit 3)", riverType: "dam_controlled", lat: 41.0350, lng: -121.9350,
     usgs: "11359500", fishingModes: ["wade"],
     thresholds: { greenFloor:280, greenCeiling:450, yellowFloor:200, yellowCeiling:600, rapidChange:75 },
-    notes: "Optimal 280–450 cfs (varies by section/powerhouse). Difficult wading — wading staff essential."
+    notes: "Below Pit 3 Dam. Difficult wading — wading staff essential. Big wild trout."
+  },
+  pit_river_bigbend: {
+    name: "Pit River (Big Bend)", riverType: "dam_controlled", lat: 41.0207, lng: -121.9101,
+    usgs: null, dfSite: "046", fishingModes: ["wade"],
+    thresholds: { greenFloor:300, greenCeiling:550, yellowFloor:200, yellowCeiling:700, rapidChange:100 },
+    notes: "At Big Bend below Pit 4. More accessible than Pit 3. Same difficult wading, big fish."
   },
   trinity_lewiston: {
     name: "Trinity River (Lewiston)", riverType: "tailwater", lat: 40.7247, lng: -122.8011,
@@ -346,11 +352,24 @@ const RIVERS = {
   // ==========================================
   // WEST SIERRA — NORTHERN
   // ==========================================
+  mf_feather_portola: {
+    name: "Mi. Feather (Portola)", riverType: "freestone", lat: 39.8188, lng: -120.4447,
+    usgs: null, dfSite: "736", fishingModes: ["wade"],
+    thresholds: { greenFloor:50, greenCeiling:150, yellowFloor:30, yellowCeiling:250, rapidChange:40 },
+    notes: "Middle Fork near Portola. Small mountain stream, beautiful meadow fishing. Wild trout."
+  },
   nf_yuba: {
-    name: "North Yuba River", riverType: "freestone", lat: 39.5255, lng: -120.9371,
+    name: "North Yuba (Goodyears Bar)", riverType: "freestone", lat: 39.5255, lng: -120.9371,
     usgs: "11413000", fishingModes: ["wade"],
     thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:200, yellowCeiling:1200, rapidChange:200 },
-    notes: "Beautiful wild trout water below Goodyears Bar. Rugged canyon access."
+    notes: "Below Goodyears Bar. Rugged canyon, excellent wild trout. Best access at Goodyears Bar."
+  },
+  sf_yuba_lang: {
+    name: "South Yuba (Lang Crossing)", riverType: "freestone", lat: 39.3186, lng: -120.6576,
+    usgs: null, dfSite: "064", fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:700, yellowFloor:100, yellowCeiling:1000, rapidChange:150 },
+    dangerousWadeCfs: 800,
+    notes: "At Lang Crossing / Hwy 49. Popular swimming and fishing. Wild trout, deep pools."
   },
   american_natoma: {
     name: "American River (Fair Oaks)", riverType: "tailwater", lat: 38.6351, lng: -121.2275,
@@ -364,23 +383,49 @@ const RIVERS = {
     thresholds: { greenFloor:200, greenCeiling:700, yellowFloor:100, yellowCeiling:1000, rapidChange:150 },
     notes: "Last major undammed river on the west slope of the Sierra. Seasonal fishing."
   },
-  mokelumne: {
-    name: "Mokelumne River", riverType: "dam_controlled", lat: 38.3300, lng: -120.6762,
+  mokelumne_electra: {
+    name: "Mokelumne (Electra)", riverType: "dam_controlled", lat: 38.3300, lng: -120.6762,
     usgs: null, dfSite: "388", fishingModes: ["wade"],
     thresholds: { greenFloor:200, greenCeiling:600, yellowFloor:100, yellowCeiling:900, rapidChange:150 },
     notes: "Below Electra Powerhouse. Good trout in the canyon. Flows fluctuate with power generation."
   },
+  mokelumne_tiger: {
+    name: "Mokelumne (Tiger Creek)", riverType: "dam_controlled", lat: 38.4398, lng: -120.5049,
+    usgs: null, dfSite: "386", fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:450, yellowFloor:80, yellowCeiling:600, rapidChange:100 },
+    notes: "Below Tiger Creek Dam. Smaller flows than Electra section. Good pocket water fishing."
+  },
+  nf_stanislaus_avery: {
+    name: "No. Stanislaus (Avery)", riverType: "freestone", lat: 38.2439, lng: -120.2903,
+    usgs: null, dfSite: "133", fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:400, yellowFloor:80, yellowCeiling:600, rapidChange:75 },
+    dangerousWadeCfs: 500,
+    notes: "North Fork at Avery. Upper canyon water, wild trout. Water temp 48°F per DreamFlows."
+  },
+  mf_stanislaus_sandbar: {
+    name: "Mi. Stanislaus (Sand Bar)", riverType: "dam_controlled", lat: 38.1829, lng: -120.1592,
+    usgs: null, dfSite: "083", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:350, yellowFloor:60, yellowCeiling:500, rapidChange:75 },
+    dangerousWadeCfs: 400,
+    notes: "Middle Fork below Sand Bar Flat Dam. Remote canyon, excellent wild trout. Difficult access."
+  },
+  sf_stanislaus_lyons: {
+    name: "So. Stanislaus (Lyons)", riverType: "dam_controlled", lat: 38.0924, lng: -120.1689,
+    usgs: null, dfSite: "781", fishingModes: ["wade"],
+    thresholds: { greenFloor:50, greenCeiling:150, yellowFloor:30, yellowCeiling:250, rapidChange:40 },
+    notes: "South Fork below Lyons Reservoir. Small stream, tight canyon. Technical wade fishing."
+  },
   stanislaus_camp9: {
-    name: "Stanislaus River (Camp Nine)", riverType: "dam_controlled", lat: 38.1387, lng: -120.3710,
+    name: "Stanislaus (Camp Nine)", riverType: "dam_controlled", lat: 38.1387, lng: -120.3710,
     usgs: null, dfSite: "084", fishingModes: ["wade"],
     thresholds: { greenFloor:200, greenCeiling:500, yellowFloor:100, yellowCeiling:800, rapidChange:100 },
-    notes: "Camp Nine area. Wild trout in the canyon. Flows controlled by upstream dams."
+    notes: "Where the forks merge. Wild trout canyon. Flows controlled by upstream dams."
   },
   stanislaus_orange: {
     name: "Stanislaus (Orange Blossom)", riverType: "tailwater", lat: 37.7881, lng: -120.7623,
     usgs: null, dfSite: "086", fishingModes: ["wade","drift"],
     thresholds: { greenFloor:300, greenCeiling:1200, yellowFloor:200, yellowCeiling:2000, rapidChange:300 },
-    notes: "Below New Melones/Goodwin Dam. Tailwater trout and steelhead."
+    notes: "Below Goodwin Dam. Tailwater trout and steelhead. Goodwin schedule controls flows."
   },
 
   // ==========================================
@@ -416,26 +461,53 @@ const RIVERS = {
     thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:150, yellowCeiling:1200, rapidChange:200 },
     notes: "Below Friant Dam. Restoration flows support trout and salmon. Growing fishery."
   },
+  kings_rodgers: {
+    name: "Kings River (Rodgers Crossing)", riverType: "freestone", lat: 36.8633, lng: -119.1233,
+    usgs: null, dfSite: "100", fishingModes: ["wade"],
+    thresholds: { greenFloor:400, greenCeiling:1200, yellowFloor:200, yellowCeiling:2000, rapidChange:300 },
+    dangerousWadeCfs: 1500,
+    notes: "Where the forks merge above Pine Flat. Big water, powerful river. Wild trout and bass."
+  },
+  kings_boyden: {
+    name: "So. Kings (Boyden Cave)", riverType: "freestone", lat: 36.8089, lng: -118.7780,
+    usgs: null, dfSite: "660", fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:500, yellowFloor:80, yellowCeiling:800, rapidChange:100 },
+    dangerousWadeCfs: 700,
+    notes: "South Fork in Kings Canyon NP above Boyden Cave. Remote wild trout in spectacular canyon."
+  },
   kings_pine_flat: {
     name: "Kings River (Pine Flat)", riverType: "tailwater", lat: 36.8307, lng: -119.3352,
     usgs: null, dfSite: "101", fishingModes: ["wade"],
     thresholds: { greenFloor:500, greenCeiling:1500, yellowFloor:300, yellowCeiling:2500, rapidChange:300 },
-    notes: "Below Pine Flat Dam. Good trout and bass fishing. Flows vary with irrigation releases."
+    notes: "Below Pine Flat Dam. Tailwater trout and bass. Flows vary with irrigation releases."
   },
-  kaweah: {
-    name: "Kaweah River", riverType: "freestone", lat: 36.4440, lng: -118.9038,
+  kaweah_three_rivers: {
+    name: "Kaweah (Three Rivers)", riverType: "freestone", lat: 36.4440, lng: -118.9038,
     usgs: null, dfSite: "103", fishingModes: ["wade"],
     thresholds: { greenFloor:150, greenCeiling:500, yellowFloor:80, yellowCeiling:800, rapidChange:100 },
-    notes: "At Three Rivers gateway to Sequoia NP. Wild rainbow trout in upper stretches."
+    notes: "Main stem at Three Rivers, gateway to Sequoia NP. Wild rainbow trout."
   },
-  nf_kern: {
-    name: "North Fork Kern River", riverType: "freestone", lat: 35.7538, lng: -118.4234,
+  ef_kaweah: {
+    name: "E. Fork Kaweah (Oak Grove)", riverType: "freestone", lat: 36.4518, lng: -118.7891,
+    usgs: null, dfSite: "362", fishingModes: ["wade"],
+    thresholds: { greenFloor:60, greenCeiling:200, yellowFloor:30, yellowCeiling:350, rapidChange:50 },
+    notes: "Near Oak Grove Bridge. Small stream, beautiful canyon. Wild trout in Sequoia foothills."
+  },
+  nf_kern_fairview: {
+    name: "NF Kern (Above Fairview)", riverType: "freestone", lat: 35.9462, lng: -118.4770,
+    usgs: null, dfSite: "681", fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:600, yellowFloor:100, yellowCeiling:1000, rapidChange:150 },
+    dangerousWadeCfs: 800,
+    notes: "Upper North Fork above Fairview Dam. Remote wild trout water. Strong currents."
+  },
+  nf_kern_kernville: {
+    name: "NF Kern (Kernville)", riverType: "freestone", lat: 35.7538, lng: -118.4234,
     usgs: null, dfSite: "104", fishingModes: ["wade"],
     thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:150, yellowCeiling:1500, rapidChange:200 },
     notes: "At Kernville. Wild trout fishery. Good wade fishing in the canyon."
   },
   kern_isabella: {
-    name: "Kern River (Isabella)", riverType: "dam_controlled", lat: 35.6406, lng: -118.4822,
+    name: "Kern (Below Isabella)", riverType: "dam_controlled", lat: 35.6406, lng: -118.4822,
     usgs: null, dfSite: "105", fishingModes: ["wade"],
     thresholds: { greenFloor:200, greenCeiling:600, yellowFloor:100, yellowCeiling:1000, rapidChange:150 },
     notes: "Below Lake Isabella. Planted and wild trout. Popular Central Valley destination."
