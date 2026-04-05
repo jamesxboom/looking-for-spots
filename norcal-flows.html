@@ -213,7 +213,7 @@ const RIVERS = {
   },
   fall_river: {
     name: "Fall River", riverType: "spring_creek", lat: 41.0200, lng: -121.4400,
-    usgs: null, fishingModes: ["boat"],
+    usgs: null, dfSite: null, fishingModes: ["boat"],
     thresholds: { greenFloor:300, greenCeiling:500, yellowFloor:200, yellowCeiling:600, rapidChange:50 },
     notes: "Spring-fed, very stable. Optimal 300–500 cfs. Boat/tube fishing only — no wading."
   },
@@ -366,19 +366,19 @@ const RIVERS = {
   },
   mokelumne: {
     name: "Mokelumne River", riverType: "dam_controlled", lat: 38.3300, lng: -120.6762,
-    usgs: null, fishingModes: ["wade"],
+    usgs: null, dfSite: "388", fishingModes: ["wade"],
     thresholds: { greenFloor:200, greenCeiling:600, yellowFloor:100, yellowCeiling:900, rapidChange:150 },
     notes: "Below Electra Powerhouse. Good trout in the canyon. Flows fluctuate with power generation."
   },
   stanislaus_camp9: {
     name: "Stanislaus River (Camp Nine)", riverType: "dam_controlled", lat: 38.1387, lng: -120.3710,
-    usgs: null, fishingModes: ["wade"],
+    usgs: null, dfSite: "084", fishingModes: ["wade"],
     thresholds: { greenFloor:200, greenCeiling:500, yellowFloor:100, yellowCeiling:800, rapidChange:100 },
     notes: "Camp Nine area. Wild trout in the canyon. Flows controlled by upstream dams."
   },
   stanislaus_orange: {
     name: "Stanislaus (Orange Blossom)", riverType: "tailwater", lat: 37.7881, lng: -120.7623,
-    usgs: null, fishingModes: ["wade","drift"],
+    usgs: null, dfSite: "086", fishingModes: ["wade","drift"],
     thresholds: { greenFloor:300, greenCeiling:1200, yellowFloor:200, yellowCeiling:2000, rapidChange:300 },
     notes: "Below New Melones/Goodwin Dam. Tailwater trout and steelhead."
   },
@@ -418,25 +418,25 @@ const RIVERS = {
   },
   kings_pine_flat: {
     name: "Kings River (Pine Flat)", riverType: "tailwater", lat: 36.8307, lng: -119.3352,
-    usgs: null, fishingModes: ["wade"],
+    usgs: null, dfSite: "101", fishingModes: ["wade"],
     thresholds: { greenFloor:500, greenCeiling:1500, yellowFloor:300, yellowCeiling:2500, rapidChange:300 },
     notes: "Below Pine Flat Dam. Good trout and bass fishing. Flows vary with irrigation releases."
   },
   kaweah: {
     name: "Kaweah River", riverType: "freestone", lat: 36.4440, lng: -118.9038,
-    usgs: null, fishingModes: ["wade"],
+    usgs: null, dfSite: "103", fishingModes: ["wade"],
     thresholds: { greenFloor:150, greenCeiling:500, yellowFloor:80, yellowCeiling:800, rapidChange:100 },
     notes: "At Three Rivers gateway to Sequoia NP. Wild rainbow trout in upper stretches."
   },
   nf_kern: {
     name: "North Fork Kern River", riverType: "freestone", lat: 35.7538, lng: -118.4234,
-    usgs: null, fishingModes: ["wade"],
+    usgs: null, dfSite: "104", fishingModes: ["wade"],
     thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:150, yellowCeiling:1500, rapidChange:200 },
     notes: "At Kernville. Wild trout fishery. Good wade fishing in the canyon."
   },
   kern_isabella: {
     name: "Kern River (Isabella)", riverType: "dam_controlled", lat: 35.6406, lng: -118.4822,
-    usgs: null, fishingModes: ["wade"],
+    usgs: null, dfSite: "105", fishingModes: ["wade"],
     thresholds: { greenFloor:200, greenCeiling:600, yellowFloor:100, yellowCeiling:1000, rapidChange:150 },
     notes: "Below Lake Isabella. Planted and wild trout. Popular Central Valley destination."
   },
@@ -563,13 +563,15 @@ async function fetchAllData() {
   updateMarkers();
 
   let usgsData = {};
+  let dfData = {};
 
   try {
     // Try our server API first (has USGS + DreamFlows data, updated every 15 min)
     const apiResp = await fetchJSON('/api/flows');
     if (apiResp && apiResp.usgs) {
       usgsData = apiResp.usgs;
-      console.log(`[api] Server data: ${Object.keys(usgsData).length} USGS sites, DF fetch: ${apiResp.lastDreamflowsFetch || 'n/a'}`);
+      dfData = apiResp.dreamflows || {};
+      console.log(`[api] Server data: ${Object.keys(usgsData).length} USGS sites, ${Object.keys(dfData).length} DreamFlows sites`);
     }
   } catch (apiErr) {
     console.warn('[api] Server API unavailable, falling back to direct USGS fetch:', apiErr.message);
@@ -604,13 +606,19 @@ async function fetchAllData() {
     }
   }
 
-  // Map data onto our rivers
+  // Map data onto our rivers — USGS first, DreamFlows as fallback
   for (const [id, river] of Object.entries(RIVERS)) {
-    const d = river.usgs ? usgsData[river.usgs] : null;
+    let d = river.usgs ? usgsData[river.usgs] : null;
+    let source = 'usgs';
+    // Fallback to DreamFlows if no USGS data and river has a dfSite ID
+    if (!d && river.dfSite && dfData[river.dfSite]) {
+      d = dfData[river.dfSite];
+      source = 'dreamflows';
+    }
     const cfs = d?.cfs ?? null;
     const tempF = d?.tempF ?? null;
     const { status, reason } = calculateStatus(cfs, tempF, river.thresholds);
-    riverData[id] = { cfs, tempF, status, reason, trend: 'stable', trendContext: '', updatedAt: d?.updatedAt || null };
+    riverData[id] = { cfs, tempF, status, reason, source, trend: 'stable', trendContext: '', updatedAt: d?.updatedAt || null };
   }
 
   // Update counts and timestamp

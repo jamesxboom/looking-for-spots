@@ -219,8 +219,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def _serve_flows(self):
         with _data_lock:
+            # Build DreamFlows lookup keyed by DF site ID
+            df_by_site = {}
+            for df_id, df_entry in _dreamflows_data.items():
+                if df_entry.get("cfs") is not None:
+                    df_by_site[df_id] = {
+                        "cfs": df_entry["cfs"],
+                        "source": "dreamflows",
+                        "updatedAt": _last_df_fetch,
+                    }
             payload = {
                 "usgs": {k: v for k, v in _flow_data.items()},
+                "dreamflows": df_by_site,
                 "lastUsgsFetch": _last_usgs_fetch,
                 "lastDreamflowsFetch": _last_df_fetch,
             }
