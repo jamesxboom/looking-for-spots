@@ -245,29 +245,67 @@ const RIVERS = {
     driftThresholds: { greenFloor:800, greenCeiling:2500, yellowFloor:500, yellowCeiling:3500 },
     notes: "Mid-river at Douglas City. Slightly higher flows than Lewiston. Great drift boat water."
   },
+  upper_truckee: {
+    name: "Upper Truckee River (South Lake Tahoe)", riverType: "freestone", lat: 38.9224, lng: -119.9916,
+    usgs: "10336610", dfSite: "183", fishingModes: ["wade"],
+    thresholds: { greenFloor:40, greenCeiling:120, yellowFloor:20, yellowCeiling:200, rapidChange:40 },
+    dangerousWadeCfs: 250,
+    notes: "Separate river flowing into Lake Tahoe. Smaller meadow stream with wild trout. Best at lower flows."
+  },
   truckee_tahoe_city: {
     name: "Truckee River (Tahoe City)", riverType: "dam_controlled", lat: 39.1663, lng: -120.1443,
-    usgs: "10337500", fishingModes: ["wade"],
+    usgs: "10337500", dfSite: "106", fishingModes: ["wade"],
     thresholds: { greenFloor:100, greenCeiling:250, yellowFloor:60, yellowCeiling:400, rapidChange:75 },
-    notes: "Upper Truckee near Lake Tahoe outlet. Smaller flows, excellent dry fly water. Wadeable year-round at normal flows."
+    notes: "Just below Lake Tahoe outlet dam. Smaller flows, excellent dry fly water. Wadeable year-round at normal flows."
+  },
+  truckee_near_truckee: {
+    name: "Truckee River (Near Truckee)", riverType: "dam_controlled", lat: 39.2963, lng: -120.2055,
+    usgs: "10338000", dfSite: "252", fishingModes: ["wade"],
+    thresholds: { greenFloor:120, greenCeiling:300, yellowFloor:80, yellowCeiling:500, rapidChange:80 },
+    dangerousWadeCfs: 500,
+    notes: "Between Tahoe City and Boca Bridge. Picks up flow from Donner Creek. Good pocket water and runs."
+  },
+  donner_creek: {
+    name: "Donner Creek", riverType: "dam_controlled", lat: 39.3235, lng: -120.2344,
+    usgs: "10338500", dfSite: "713", fishingModes: ["wade"],
+    thresholds: { greenFloor:8, greenCeiling:30, yellowFloor:4, yellowCeiling:50, rapidChange:10 },
+    dangerousWadeCfs: 60,
+    notes: "Small creek below Donner Lake near Truckee. Intimate fishing for small wild trout. Very low flows."
+  },
+  little_truckee: {
+    name: "Little Truckee River", riverType: "tailwater", lat: 39.3868, lng: -120.0955,
+    usgs: "10344500", dfSite: "735", fishingModes: ["wade"],
+    thresholds: { greenFloor:50, greenCeiling:150, yellowFloor:30, yellowCeiling:200, rapidChange:50 },
+    dangerousWadeCfs: 250,
+    notes: "Below Boca Reservoir. Excellent tailwater with consistent temps. Optimal 50–150 cfs."
+  },
+  truckee_boca_bridge: {
+    name: "Truckee River (Boca Bridge)", riverType: "dam_controlled", lat: 39.3900, lng: -120.0900,
+    usgs: null, dfSite: "426", fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:500, yellowFloor:120, yellowCeiling:800, rapidChange:100 },
+    dangerousWadeCfs: 700,
+    notes: "Below Little Truckee confluence. Significant flow increase here. Good nymphing water with deep runs."
+  },
+  truckee_floriston: {
+    name: "Truckee River (Floriston)", riverType: "dam_controlled", lat: 39.4000, lng: -120.0200,
+    usgs: null, dfSite: "165", fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:500, yellowFloor:120, yellowCeiling:800, rapidChange:100 },
+    dangerousWadeCfs: 700,
+    notes: "Just upstream of Farad. Canyon water with boulder pocket runs. Similar flows to Farad gauge."
   },
   truckee_farad: {
     name: "Truckee River (Farad)", riverType: "dam_controlled", lat: 39.4279, lng: -120.0341,
-    usgs: "10346000", fishingModes: ["wade"],
-    thresholds: { greenFloor:150, greenCeiling:350, yellowFloor:100, yellowCeiling:500, rapidChange:100 },
-    notes: "At Farad near CA/NV border. Canyon section handles higher flows from a drift boat."
+    usgs: "10346000", dfSite: "165", fishingModes: ["wade","drift"],
+    thresholds: { greenFloor:200, greenCeiling:500, yellowFloor:120, yellowCeiling:800, rapidChange:100 },
+    dangerousWadeCfs: 700,
+    notes: "Canyon section at CA/NV border. Boulder gardens and deep pools. Higher flows fishable from drift boat."
   },
   truckee_reno: {
     name: "Truckee River (Reno)", riverType: "dam_controlled", lat: 39.5302, lng: -119.7955,
-    usgs: "10348000", fishingModes: ["wade"],
+    usgs: "10348000", dfSite: "449", fishingModes: ["wade"],
     thresholds: { greenFloor:150, greenCeiling:400, yellowFloor:100, yellowCeiling:600, rapidChange:100 },
-    notes: "Urban section through Reno. Surprisingly good fishing. Brown trout fishery."
-  },
-  little_truckee: {
-    name: "Little Truckee River", riverType: "tailwater", lat: 39.5500, lng: -120.1600,
-    usgs: "10340500", fishingModes: ["wade"],
-    thresholds: { greenFloor:50, greenCeiling:150, yellowFloor:30, yellowCeiling:200, rapidChange:50 },
-    notes: "Optimal 50–150 cfs. Tailwater below Stampede with consistent temps."
+    dangerousWadeCfs: 600,
+    notes: "Urban section through Reno. Surprisingly good fishing. Brown trout fishery with easy access."
   },
   east_walker: {
     name: "East Walker River", riverType: "dam_controlled", lat: 38.3300, lng: -119.2200,
@@ -530,16 +568,23 @@ const RIVERS = {
     dangerousWadeCfs: 350,
     notes: "Upper West Walker near Coleville. Smaller, more intimate water. Good pocket water fishing."
   },
-  ef_carson: {
-    name: "East Fork Carson River", riverType: "freestone", lat: 38.7146, lng: -119.7649,
-    usgs: "10308200", fishingModes: ["wade"],
+  ef_carson_markleeville: {
+    name: "E. Fork Carson (Markleeville)", riverType: "freestone", lat: 38.7146, lng: -119.7649,
+    usgs: "10308200", dfSite: "127", fishingModes: ["wade"],
     thresholds: { greenFloor:150, greenCeiling:500, yellowFloor:80, yellowCeiling:800, rapidChange:100 },
     dangerousWadeCfs: 700,
-    notes: "Below Markleeville. Excellent wild trout. Deep canyon pools and riffles. Spring runoff can be high."
+    notes: "Upper East Fork near Markleeville. Excellent wild trout. Deep canyon pools and riffles. Spring runoff can be high."
+  },
+  ef_carson_gardnerville: {
+    name: "E. Fork Carson (Gardnerville)", riverType: "freestone", lat: 38.8452, lng: -119.7061,
+    usgs: "10309000", dfSite: "108", fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:500, yellowFloor:80, yellowCeiling:800, rapidChange:100 },
+    dangerousWadeCfs: 700,
+    notes: "Lower East Fork near Gardnerville. Wider valley section downstream of Markleeville canyon. Good access points."
   },
   wf_carson: {
-    name: "West Fork Carson River", riverType: "freestone", lat: 38.7696, lng: -119.8338,
-    usgs: "10310000", fishingModes: ["wade"],
+    name: "West Fork Carson (Woodfords)", riverType: "freestone", lat: 38.7696, lng: -119.8338,
+    usgs: "10310000", dfSite: "714", fishingModes: ["wade"],
     thresholds: { greenFloor:50, greenCeiling:200, yellowFloor:30, yellowCeiling:350, rapidChange:50 },
     dangerousWadeCfs: 300,
     notes: "At Woodfords. Smaller stream, excellent wild trout. Meadow and canyon sections."
