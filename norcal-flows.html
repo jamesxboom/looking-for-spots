@@ -143,6 +143,39 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .trend-box { background: #f1f5f9; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: #475569; }
 .trend-box strong { color: #1e293b; }
 
+/* Fishing Reports */
+.reports-section { background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%); border: 1px solid #93c5fd; border-radius: 10px; padding: 14px; margin-bottom: 20px; }
+.reports-title { font-size: 12px; font-weight: 600; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.report-card { background: white; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border-left: 3px solid #3b82f6; }
+.report-card:last-child { margin-bottom: 0; }
+.report-card-title { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 4px; line-height: 1.3; }
+.report-card-title a { color: #1e293b; text-decoration: none; }
+.report-card-title a:hover { color: #2563eb; text-decoration: underline; }
+.report-card-meta { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+.report-card-snippet { font-size: 12px; color: #475569; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.reports-all-link { font-size: 12px; color: #2563eb; cursor: pointer; margin-top: 8px; display: inline-block; }
+.reports-all-link:hover { text-decoration: underline; }
+
+/* Reports Modal */
+.reports-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+.reports-modal-overlay.visible { display: flex; }
+.reports-modal { background: white; border-radius: 16px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.reports-modal-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; border-radius: 16px 16px 0 0; z-index: 1; }
+.reports-modal-header h2 { font-size: 18px; font-weight: 700; }
+.reports-modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; padding: 4px; }
+.reports-modal-body { padding: 16px 20px; }
+.reports-filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.reports-filter-btn { font-size: 11px; padding: 5px 12px; border: 1px solid #d1d5db; border-radius: 20px; background: white; cursor: pointer; font-family: inherit; color: #475569; }
+.reports-filter-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+.report-full-card { background: #f8fafc; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; border-left: 3px solid #3b82f6; }
+.report-full-title { font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
+.report-full-title a { color: #1e293b; text-decoration: none; }
+.report-full-title a:hover { color: #2563eb; text-decoration: underline; }
+.report-full-meta { font-size: 11px; color: #64748b; margin-bottom: 8px; display: flex; gap: 12px; flex-wrap: wrap; }
+.report-full-snippet { font-size: 13px; color: #475569; line-height: 1.5; }
+.report-rivers { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.report-river-tag { font-size: 10px; background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 10px; }
+
 /* Footer */
 .footer { background: white; border-top: 1px solid #e2e8f0; padding: 8px 20px; font-size: 11px; color: #94a3b8; text-align: center; flex-shrink: 0; }
 
@@ -211,6 +244,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
       <span id="update-time"></span>
       <div class="header-controls">
         <button class="header-btn" id="view-toggle" style="display:none;">List</button>
+        <button class="header-btn" id="reports-btn" title="Fishing reports from local shops" onclick="openReportsModal()">Shop Reports</button>
         <button class="header-btn" id="geolocation-btn" title="Find nearby spots">📍 Near Me</button>
         <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Refresh</button>
       </div>
@@ -264,6 +298,27 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
   </footer>
 </div>
 
+<!-- Reports Modal -->
+<div class="reports-modal-overlay" id="reports-modal" onclick="closeReportsModal(event)">
+  <div class="reports-modal" onclick="event.stopPropagation()">
+    <div class="reports-modal-header">
+      <h2>Shop Fishing Reports</h2>
+      <button class="reports-modal-close" onclick="closeReportsModal()" aria-label="Close reports">&times;</button>
+    </div>
+    <div class="reports-modal-body">
+      <div class="reports-filter-bar" id="reports-filter-bar">
+        <button class="reports-filter-btn active" onclick="filterReports('all', this)">All</button>
+        <button class="reports-filter-btn" onclick="filterReports('Trout Creek Outfitters', this)">Trout Creek</button>
+        <button class="reports-filter-btn" onclick="filterReports('Reno Fly Shop', this)">Reno Fly Shop</button>
+        <button class="reports-filter-btn" onclick="filterReports('The Fly Shop', this)">The Fly Shop</button>
+      </div>
+      <div id="reports-list">
+        <div style="text-align:center;padding:40px;color:#64748b;">Loading reports...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ============================
@@ -275,6 +330,8 @@ let riverData = {};
 let userLocation = null;
 let viewMode = 'list'; // 'list' or 'map'
 let favoritesFilter = false;
+let reportsData = [];
+let reportsFilter = 'all';
 
 // ============================
 // RIVER CONFIGS
@@ -1381,6 +1438,9 @@ async function fetchAllData() {
 
   renderSidebar();
   updateMarkers();
+
+  // Fetch fishing reports in background (non-blocking)
+  fetchReports();
 }
 
 function fetchJSON(url) {
@@ -1851,6 +1911,7 @@ function renderDetailPanel(id, river, data, detail) {
     ${modeHtml}
     ${weatherHtml}
     ${hatchHtml}
+    ${getReportsHtml(id)}
     ${notesHtml}
     <div class="detail-gauge">
       ${gaugeInfo ? `<span>${gaugeInfo}</span>` : ''}
@@ -1926,6 +1987,127 @@ function setupGeolocation() {
       alert('Geolocation not supported in your browser');
     }
   });
+}
+
+// ============================
+// FISHING REPORTS
+// ============================
+async function fetchReports() {
+  try {
+    const resp = await fetchJSON('/api/reports');
+    if (resp && resp.reports) {
+      reportsData = resp.reports;
+      console.log(`[reports] ${reportsData.length} reports loaded`);
+    }
+  } catch (e) {
+    console.warn('[reports] Could not fetch reports:', e.message);
+  }
+}
+
+function openReportsModal() {
+  const modal = document.getElementById('reports-modal');
+  modal.classList.add('visible');
+  renderReportsList();
+}
+
+function closeReportsModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('reports-modal').classList.remove('visible');
+}
+
+function filterReports(filter, btn) {
+  reportsFilter = filter;
+  // Update active button
+  document.querySelectorAll('.reports-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderReportsList();
+}
+
+function renderReportsList() {
+  const container = document.getElementById('reports-list');
+  let filtered = reportsData;
+  if (reportsFilter !== 'all') {
+    filtered = reportsData.filter(r => r.source === reportsFilter);
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;">No reports available yet. Reports refresh every 2 hours.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(r => {
+    const riverTags = (r.rivers_mentioned || []).slice(0, 6).map(rv =>
+      `<span class="report-river-tag">${rv}</span>`
+    ).join('');
+    const dateStr = r.date ? new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    return `
+      <div class="report-full-card">
+        <div class="report-full-title"><a href="${r.url}" target="_blank" rel="noopener">${escapeHtml(r.title)}</a></div>
+        <div class="report-full-meta">
+          <span>${r.source}</span>
+          ${dateStr ? `<span>${dateStr}</span>` : ''}
+        </div>
+        <div class="report-full-snippet">${escapeHtml(r.snippet)}</div>
+        ${riverTags ? `<div class="report-rivers">${riverTags}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function getReportsHtml(riverId) {
+  const reports = getReportsForRiver(riverId);
+  if (!reports.length) return '';
+
+  const cards = reports.map(r => {
+    const dateStr = r.date ? new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+    return `
+      <div class="report-card">
+        <div class="report-card-title"><a href="${r.url}" target="_blank" rel="noopener">${escapeHtml(r.title)}</a></div>
+        <div class="report-card-meta">${r.source}${dateStr ? ' · ' + dateStr : ''}</div>
+        <div class="report-card-snippet">${escapeHtml(r.snippet)}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="reports-section">
+      <div class="reports-title">Shop Reports</div>
+      ${cards}
+      <span class="reports-all-link" onclick="openReportsModal()">View all reports →</span>
+    </div>
+  `;
+}
+
+function getReportsForRiver(riverId) {
+  if (!reportsData || !reportsData.length) return [];
+  const river = RIVERS[riverId];
+  if (!river) return [];
+
+  // Build search terms from river name
+  const name = river.name.toLowerCase();
+  const searchTerms = [name];
+
+  // Extract key words (e.g., "Truckee River (Near Truckee)" -> "truckee")
+  const words = name.replace(/[()]/g, '').split(/\s+/).filter(w => w.length > 3 && !['river', 'creek', 'fork', 'near', 'above', 'below', 'south', 'north', 'east', 'west', 'middle', 'upper', 'lower'].includes(w));
+  searchTerms.push(...words);
+
+  // Also try the ID components
+  const idParts = riverId.split('_').filter(p => p.length > 2);
+  searchTerms.push(...idParts);
+
+  return reportsData.filter(r => {
+    const rivers = r.rivers_mentioned || [];
+    const titleLower = (r.title || '').toLowerCase();
+    const snippetLower = (r.snippet || '').toLowerCase();
+    const fullText = titleLower + ' ' + snippetLower + ' ' + rivers.join(' ');
+
+    return searchTerms.some(term => fullText.includes(term));
+  }).slice(0, 3); // Max 3 reports per river
 }
 
 // ============================
