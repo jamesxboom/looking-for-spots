@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Looking For Spots — Fly Fishing Conditions</title>
+<title>Looking For Spots — California Fly Fishing Conditions</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -165,7 +165,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
     </div>
   </div>
   <div class="footer">
-    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a> &amp; <a href="https://cdec.water.ca.gov" target="_blank" style="color:#64748b;">CDEC</a> &middot; Provisional, not verified &middot; Not for safety decisions &middot; Auto-refreshes every 15 min
+    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a> &middot; Provisional, not verified &middot; Not for safety decisions &middot; Auto-refreshes every 15 min
   </div>
 </div>
 
@@ -174,13 +174,365 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 // ============================
 // STATE
 // ============================
-let RIVERS = {};    // id -> { name, lat, lng, riverType, fishingModes, modeStatuses }
-let riverData = {}; // id -> { cfs, tempF, status, reason, trend, trendContext, updatedAt }
 let selectedRiverId = null;
 let map, markers = {};
+let riverData = {}; // id -> { cfs, tempF, status, reason, trend, trendContext, updatedAt }
 
 // ============================
-// DATA LOADING — FastAPI backend (/api/rivers returns a list directly)
+// RIVER CONFIGS — embedded so no backend needed
+// ============================
+const RIVERS = {
+  lower_sacramento: {
+    name: "Lower Sacramento River", riverType: "tailwater", lat: 40.5865, lng: -122.4458,
+    usgs: "11370500", fishingModes: ["drift","wade"],
+    thresholds: { greenFloor:4000, greenCeiling:8000, yellowFloor:3000, yellowCeiling:12000, rapidChange:1500 },
+    wadeThresholds: { greenFloor:3500, greenCeiling:5000, yellowFloor:3000, yellowCeiling:6000 },
+    driftThresholds: { greenFloor:4000, greenCeiling:8000, yellowFloor:3000, yellowCeiling:12000 },
+    blownOutCfs: 12000,
+    notes: "Premier NorCal tailwater. Drift boat optimal 4,000–8,000 cfs. Blown out above ~12,000."
+  },
+  upper_sacramento: {
+    name: "Upper Sacramento River", riverType: "freestone", lat: 41.1350, lng: -122.3550,
+    usgs: "11342000", fishingModes: ["wade"],
+    thresholds: { greenFloor:400, greenCeiling:800, yellowFloor:300, yellowCeiling:1200, rapidChange:200 },
+    blownOutCfs: 1200, dangerousWadeCfs: 600,
+    notes: "Optimal 400–800 cfs at Delta gauge. Wadeable below ~600. Blown out above 1,200."
+  },
+  mccloud: {
+    name: "McCloud River", riverType: "spring_fed", lat: 41.0700, lng: -122.1100,
+    usgs: "11367500", fishingModes: ["wade"],
+    thresholds: { greenFloor:800, greenCeiling:1200, yellowFloor:600, yellowCeiling:1500, rapidChange:200 },
+    dangerousWadeCfs: 900,
+    notes: "Optimal 800–1,200 cfs. Wadeable below ~900. Spring-fed, relatively stable."
+  },
+  hat_creek: {
+    name: "Hat Creek", riverType: "spring_creek", lat: 40.6891, lng: -121.4228,
+    usgs: "11355500", fishingModes: ["wade"],
+    thresholds: { greenFloor:50, greenCeiling:120, yellowFloor:30, yellowCeiling:180, rapidChange:30 },
+    notes: "Spring creek, very low flows. Optimal 50–120 cfs. Wild Trout section below Powerhouse 2."
+  },
+  fall_river: {
+    name: "Fall River", riverType: "spring_creek", lat: 41.0200, lng: -121.4400,
+    usgs: null, fishingModes: ["boat"],
+    thresholds: { greenFloor:300, greenCeiling:500, yellowFloor:200, yellowCeiling:600, rapidChange:50 },
+    notes: "Spring-fed, very stable. Optimal 300–500 cfs. Boat/tube fishing only — no wading."
+  },
+  pit_river: {
+    name: "Pit River (Pit 3)", riverType: "dam_controlled", lat: 41.0350, lng: -121.9350,
+    usgs: "11359500", fishingModes: ["wade"],
+    thresholds: { greenFloor:280, greenCeiling:450, yellowFloor:200, yellowCeiling:600, rapidChange:75 },
+    notes: "Optimal 280–450 cfs (varies by section/powerhouse). Difficult wading — wading staff essential."
+  },
+  trinity_lewiston: {
+    name: "Trinity River (Lewiston)", riverType: "tailwater", lat: 40.7247, lng: -122.8011,
+    usgs: "11525500", fishingModes: ["wade","drift"],
+    thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:200, yellowCeiling:1200, rapidChange:400 },
+    wadeThresholds: { greenFloor:300, greenCeiling:800, yellowFloor:200, yellowCeiling:1000 },
+    driftThresholds: { greenFloor:800, greenCeiling:2500, yellowFloor:500, yellowCeiling:3500 },
+    notes: "At Lewiston Dam. Upper section — best wade fishing. Optimal 300–800 cfs."
+  },
+  trinity_douglas_city: {
+    name: "Trinity River (Douglas City)", riverType: "tailwater", lat: 40.6453, lng: -122.9567,
+    usgs: "11525854", fishingModes: ["wade","drift"],
+    thresholds: { greenFloor:350, greenCeiling:900, yellowFloor:250, yellowCeiling:1400, rapidChange:400 },
+    wadeThresholds: { greenFloor:350, greenCeiling:900, yellowFloor:250, yellowCeiling:1200 },
+    driftThresholds: { greenFloor:800, greenCeiling:2500, yellowFloor:500, yellowCeiling:3500 },
+    notes: "Mid-river at Douglas City. Slightly higher flows than Lewiston. Great drift boat water."
+  },
+  truckee_tahoe_city: {
+    name: "Truckee River (Tahoe City)", riverType: "dam_controlled", lat: 39.1663, lng: -120.1443,
+    usgs: "10337500", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:250, yellowFloor:60, yellowCeiling:400, rapidChange:75 },
+    notes: "Upper Truckee near Lake Tahoe outlet. Smaller flows, excellent dry fly water. Wadeable year-round at normal flows."
+  },
+  truckee_farad: {
+    name: "Truckee River (Farad)", riverType: "dam_controlled", lat: 39.4279, lng: -120.0341,
+    usgs: "10346000", fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:350, yellowFloor:100, yellowCeiling:500, rapidChange:100 },
+    notes: "At Farad near CA/NV border. Canyon section handles higher flows from a drift boat."
+  },
+  truckee_reno: {
+    name: "Truckee River (Reno)", riverType: "dam_controlled", lat: 39.5302, lng: -119.7955,
+    usgs: "10348000", fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:400, yellowFloor:100, yellowCeiling:600, rapidChange:100 },
+    notes: "Urban section through Reno. Surprisingly good fishing. Brown trout fishery."
+  },
+  little_truckee: {
+    name: "Little Truckee River", riverType: "tailwater", lat: 39.5500, lng: -120.1600,
+    usgs: "10340500", fishingModes: ["wade"],
+    thresholds: { greenFloor:50, greenCeiling:150, yellowFloor:30, yellowCeiling:200, rapidChange:50 },
+    notes: "Optimal 50–150 cfs. Tailwater below Stampede with consistent temps."
+  },
+  east_walker: {
+    name: "East Walker River", riverType: "dam_controlled", lat: 38.3300, lng: -119.2200,
+    usgs: "10293000", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:225, yellowFloor:75, yellowCeiling:350, rapidChange:50 },
+    dangerousWadeCfs: 350,
+    notes: "Miracle Mile. Optimal 100–225 cfs. Dangerous wading above 350 cfs."
+  },
+  lower_owens: {
+    name: "Lower Owens River", riverType: "managed", lat: 37.3900, lng: -118.5100,
+    usgs: "10251300", fishingModes: ["wade"],
+    thresholds: { greenFloor:80, greenCeiling:280, yellowFloor:50, yellowCeiling:300, rapidChange:50 },
+    dangerousWadeCfs: 300,
+    notes: "Wading dangerous above 300."
+  },
+  upper_owens: {
+    name: "Upper Owens River", riverType: "freestone", lat: 37.6200, lng: -118.7500,
+    usgs: "10250800", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:140, yellowFloor:70, yellowCeiling:200, rapidChange:30 },
+    notes: "Small stream. Below Hot Creek confluence ~140."
+  },
+  yuba: {
+    name: "Yuba River", riverType: "freestone", lat: 39.5700, lng: -120.9300,
+    usgs: "11413000", fishingModes: ["wade"],
+    thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:200, yellowCeiling:1200, rapidChange:200 },
+    notes: "Optimal 300–800 cfs for wading. Multiple forks — conditions vary."
+  },
+  north_fork_american: {
+    name: "North Fork American River", riverType: "freestone", lat: 38.9400, lng: -120.7300,
+    usgs: "11427000", fishingModes: ["wade"],
+    thresholds: { greenFloor:500, greenCeiling:1000, yellowFloor:350, yellowCeiling:1500, rapidChange:300 },
+    notes: "Optimal 500–1,000 cfs. Can run high during spring snowmelt."
+  },
+  hot_creek: {
+    name: "Hot Creek", riverType: "spring_creek", lat: 37.6600, lng: -118.8300,
+    usgs: "10265150", fishingModes: ["wade"],
+    thresholds: { greenFloor:8, greenCeiling:50, yellowFloor:5, yellowCeiling:70, rapidChange:10 },
+    notes: "Tiny spring creek. Very technical. Fishable year-round."
+  },
+
+  // ==========================================
+  // SACRAMENTO VALLEY
+  // ==========================================
+  clear_creek: {
+    name: "Clear Creek", riverType: "tailwater", lat: 40.5135, lng: -122.5249,
+    usgs: "11372000", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:300, yellowFloor:60, yellowCeiling:500, rapidChange:75 },
+    dangerousWadeCfs: 400,
+    notes: "Small tailwater below Whiskeytown Lake. Excellent wild trout. Wadeable below ~300 cfs."
+  },
+  battle_creek: {
+    name: "Battle Creek", riverType: "freestone", lat: 40.3982, lng: -122.1464,
+    usgs: "11376550", fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:400, yellowFloor:100, yellowCeiling:600, rapidChange:100 },
+    notes: "Spring-fed creek near Coleman Fish Hatchery. Good wild trout and steelhead."
+  },
+  mill_creek_sac: {
+    name: "Mill Creek", riverType: "freestone", lat: 40.0547, lng: -122.0231,
+    usgs: "11381500", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:350, yellowFloor:60, yellowCeiling:500, rapidChange:75 },
+    notes: "Wild and scenic river. Remote, pristine freestone. Spring chinook and steelhead."
+  },
+  deer_creek_sac: {
+    name: "Deer Creek (Vina)", riverType: "freestone", lat: 40.0138, lng: -121.9480,
+    usgs: "11383500", fishingModes: ["wade"],
+    thresholds: { greenFloor:80, greenCeiling:300, yellowFloor:50, yellowCeiling:450, rapidChange:75 },
+    notes: "Wild and scenic creek. One of the last unimpaired streams in the Sacramento Valley."
+  },
+  butte_creek: {
+    name: "Butte Creek", riverType: "freestone", lat: 39.7260, lng: -121.7089,
+    usgs: "11390000", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:350, yellowFloor:60, yellowCeiling:500, rapidChange:75 },
+    notes: "Important spring-run chinook habitat. Good smallmouth and trout fishing."
+  },
+  putah_creek: {
+    name: "Putah Creek", riverType: "tailwater", lat: 38.5150, lng: -122.0820,
+    usgs: "11454000", fishingModes: ["wade"],
+    thresholds: { greenFloor:50, greenCeiling:200, yellowFloor:30, yellowCeiling:350, rapidChange:50 },
+    notes: "Below Lake Berryessa. Wild trout tailwater. Walk-and-wade only."
+  },
+
+  // ==========================================
+  // WEST SIERRA — NORTHERN
+  // ==========================================
+  nf_yuba: {
+    name: "North Yuba River", riverType: "freestone", lat: 39.5255, lng: -120.9371,
+    usgs: "11413000", fishingModes: ["wade"],
+    thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:200, yellowCeiling:1200, rapidChange:200 },
+    notes: "Beautiful wild trout water below Goodyears Bar. Rugged canyon access."
+  },
+  american_natoma: {
+    name: "American River (Fair Oaks)", riverType: "tailwater", lat: 38.6351, lng: -121.2275,
+    usgs: "11446500", fishingModes: ["wade","drift"],
+    thresholds: { greenFloor:1000, greenCeiling:2500, yellowFloor:800, yellowCeiling:4000, rapidChange:500 },
+    notes: "Lower American below Nimbus Dam. Steelhead, shad, stripers. Urban fishery near Sacramento."
+  },
+  cosumnes: {
+    name: "Cosumnes River", riverType: "freestone", lat: 38.5003, lng: -121.0442,
+    usgs: "11335000", fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:700, yellowFloor:100, yellowCeiling:1000, rapidChange:150 },
+    notes: "Last major undammed river on the west slope of the Sierra. Seasonal fishing."
+  },
+  mokelumne: {
+    name: "Mokelumne River", riverType: "dam_controlled", lat: 38.3300, lng: -120.6762,
+    usgs: null, fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:600, yellowFloor:100, yellowCeiling:900, rapidChange:150 },
+    notes: "Below Electra Powerhouse. Good trout in the canyon. Flows fluctuate with power generation."
+  },
+  stanislaus_camp9: {
+    name: "Stanislaus River (Camp Nine)", riverType: "dam_controlled", lat: 38.1387, lng: -120.3710,
+    usgs: null, fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:500, yellowFloor:100, yellowCeiling:800, rapidChange:100 },
+    notes: "Camp Nine area. Wild trout in the canyon. Flows controlled by upstream dams."
+  },
+  stanislaus_orange: {
+    name: "Stanislaus (Orange Blossom)", riverType: "tailwater", lat: 37.7881, lng: -120.7623,
+    usgs: null, fishingModes: ["wade","drift"],
+    thresholds: { greenFloor:300, greenCeiling:1200, yellowFloor:200, yellowCeiling:2000, rapidChange:300 },
+    notes: "Below New Melones/Goodwin Dam. Tailwater trout and steelhead."
+  },
+
+  // ==========================================
+  // WEST SIERRA — SOUTHERN
+  // ==========================================
+  tuolumne_hh: {
+    name: "Tuolumne (Hetch Hetchy)", riverType: "dam_controlled", lat: 37.9378, lng: -119.7978,
+    usgs: "11276500", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:400, yellowFloor:50, yellowCeiling:600, rapidChange:100 },
+    notes: "Below Hetch Hetchy in Yosemite. Remote, beautiful wild trout water."
+  },
+  tuolumne_lagrange: {
+    name: "Tuolumne (La Grange)", riverType: "tailwater", lat: 37.6663, lng: -120.4421,
+    usgs: "11289650", fishingModes: ["wade","drift"],
+    thresholds: { greenFloor:150, greenCeiling:400, yellowFloor:80, yellowCeiling:600, rapidChange:100 },
+    notes: "Below La Grange Dam. Wild rainbow trout tailwater fishery."
+  },
+  merced_yosemite: {
+    name: "Merced River (Yosemite)", riverType: "freestone", lat: 37.7165, lng: -119.6656,
+    usgs: "11266500", fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:800, yellowFloor:100, yellowCeiling:1200, rapidChange:200 },
+    notes: "Yosemite Valley at Pohono Bridge. Rainbow and brown trout. Spectacular setting."
+  },
+  san_joaquin_postpile: {
+    name: "Middle Fork San Joaquin", riverType: "freestone", lat: 37.6319, lng: -119.0864,
+    usgs: "11224000", fishingModes: ["wade"],
+    thresholds: { greenFloor:50, greenCeiling:200, yellowFloor:30, yellowCeiling:350, rapidChange:50 },
+    notes: "At Devils Postpile near Mammoth. Small stream wild trout. Excellent dry fly water."
+  },
+  san_joaquin_friant: {
+    name: "San Joaquin (Friant)", riverType: "tailwater", lat: 36.9845, lng: -119.7239,
+    usgs: "11251000", fishingModes: ["wade","drift"],
+    thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:150, yellowCeiling:1200, rapidChange:200 },
+    notes: "Below Friant Dam. Restoration flows support trout and salmon. Growing fishery."
+  },
+  kings_pine_flat: {
+    name: "Kings River (Pine Flat)", riverType: "tailwater", lat: 36.8307, lng: -119.3352,
+    usgs: null, fishingModes: ["wade"],
+    thresholds: { greenFloor:500, greenCeiling:1500, yellowFloor:300, yellowCeiling:2500, rapidChange:300 },
+    notes: "Below Pine Flat Dam. Good trout and bass fishing. Flows vary with irrigation releases."
+  },
+  kaweah: {
+    name: "Kaweah River", riverType: "freestone", lat: 36.4440, lng: -118.9038,
+    usgs: null, fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:500, yellowFloor:80, yellowCeiling:800, rapidChange:100 },
+    notes: "At Three Rivers gateway to Sequoia NP. Wild rainbow trout in upper stretches."
+  },
+  nf_kern: {
+    name: "North Fork Kern River", riverType: "freestone", lat: 35.7538, lng: -118.4234,
+    usgs: null, fishingModes: ["wade"],
+    thresholds: { greenFloor:300, greenCeiling:800, yellowFloor:150, yellowCeiling:1500, rapidChange:200 },
+    notes: "At Kernville. Wild trout fishery. Good wade fishing in the canyon."
+  },
+  kern_isabella: {
+    name: "Kern River (Isabella)", riverType: "dam_controlled", lat: 35.6406, lng: -118.4822,
+    usgs: null, fishingModes: ["wade"],
+    thresholds: { greenFloor:200, greenCeiling:600, yellowFloor:100, yellowCeiling:1000, rapidChange:150 },
+    notes: "Below Lake Isabella. Planted and wild trout. Popular Central Valley destination."
+  },
+
+  // ==========================================
+  // EAST SIERRA (additional)
+  // ==========================================
+  west_walker_coleville: {
+    name: "West Walker River (Coleville)", riverType: "freestone", lat: 38.3796, lng: -119.4502,
+    usgs: "10296000", fishingModes: ["wade"],
+    thresholds: { greenFloor:100, greenCeiling:300, yellowFloor:60, yellowCeiling:500, rapidChange:75 },
+    dangerousWadeCfs: 400,
+    notes: "Below Little Walker confluence near Coleville. Wild brown and rainbow trout."
+  },
+  west_walker_upper: {
+    name: "West Walker River (Upper)", riverType: "freestone", lat: 38.5132, lng: -119.4499,
+    usgs: "10296500", fishingModes: ["wade"],
+    thresholds: { greenFloor:80, greenCeiling:250, yellowFloor:50, yellowCeiling:400, rapidChange:60 },
+    dangerousWadeCfs: 350,
+    notes: "Upper West Walker near Coleville. Smaller, more intimate water. Good pocket water fishing."
+  },
+  ef_carson: {
+    name: "East Fork Carson River", riverType: "freestone", lat: 38.7146, lng: -119.7649,
+    usgs: "10308200", fishingModes: ["wade"],
+    thresholds: { greenFloor:150, greenCeiling:500, yellowFloor:80, yellowCeiling:800, rapidChange:100 },
+    dangerousWadeCfs: 700,
+    notes: "Below Markleeville. Excellent wild trout. Deep canyon pools and riffles. Spring runoff can be high."
+  },
+  wf_carson: {
+    name: "West Fork Carson River", riverType: "freestone", lat: 38.7696, lng: -119.8338,
+    usgs: "10310000", fishingModes: ["wade"],
+    thresholds: { greenFloor:50, greenCeiling:200, yellowFloor:30, yellowCeiling:350, rapidChange:50 },
+    dangerousWadeCfs: 300,
+    notes: "At Woodfords. Smaller stream, excellent wild trout. Meadow and canyon sections."
+  },
+
+  // ==========================================
+  // SACRAMENTO VALLEY (additional spots)
+  // ==========================================
+  cottonwood_creek: {
+    name: "Cottonwood Creek", riverType: "freestone", lat: 40.3871, lng: -122.2386,
+    usgs: "11376000", fishingModes: ["wade"],
+    thresholds: { greenFloor:80, greenCeiling:300, yellowFloor:50, yellowCeiling:500, rapidChange:75 },
+    notes: "Near Cottonwood. Seasonal steelhead and trout. Best in spring and fall."
+  },
+  elder_creek: {
+    name: "Elder Creek", riverType: "freestone", lat: 40.0238, lng: -122.5119,
+    usgs: "11379500", fishingModes: ["wade"],
+    thresholds: { greenFloor:30, greenCeiling:120, yellowFloor:15, yellowCeiling:200, rapidChange:30 },
+    notes: "Near Paskenta. Small pristine freestone. Remote, difficult access. Wild trout."
+  },
+};
+
+// ============================
+// TRAFFIC LIGHT LOGIC
+// ============================
+function calculateStatus(cfs, tempF, thresholds) {
+  if (cfs === null || cfs === undefined) return { status: 'red', reason: 'No flow data available' };
+
+  const { greenFloor, greenCeiling, yellowFloor, yellowCeiling } = thresholds;
+  let status, reason;
+
+  if (cfs >= greenFloor && cfs <= greenCeiling) {
+    status = 'green';
+    reason = `Optimal range (${Math.round(cfs).toLocaleString()} cfs)`;
+  } else if (cfs >= yellowFloor && cfs < greenFloor) {
+    status = 'yellow';
+    reason = `Below optimal (${Math.round(cfs).toLocaleString()} cfs) — min optimal: ${greenFloor.toLocaleString()}`;
+  } else if (cfs > greenCeiling && cfs <= yellowCeiling) {
+    status = 'yellow';
+    reason = `Above optimal (${Math.round(cfs).toLocaleString()} cfs) — max optimal: ${greenCeiling.toLocaleString()}`;
+  } else if (cfs < yellowFloor) {
+    status = 'red';
+    reason = `Too low (${Math.round(cfs).toLocaleString()} cfs) — min fishable: ${yellowFloor.toLocaleString()}`;
+  } else {
+    status = 'red';
+    reason = `Too high (${Math.round(cfs).toLocaleString()} cfs) — max fishable: ${yellowCeiling.toLocaleString()}`;
+  }
+
+  // Temperature overrides
+  if (tempF !== null && tempF !== undefined) {
+    if (tempF > 68) {
+      status = 'red';
+      reason = `Water too warm (${tempF.toFixed(1)}°F) — do not fish`;
+    } else if (tempF > 65 && status === 'green') {
+      status = 'yellow';
+      reason += ` · Water warming (${tempF.toFixed(1)}°F) — fish early`;
+    }
+  }
+
+  return { status, reason };
+}
+
+// ============================
+// DATA LOADING — from /api/flows (server fetches USGS + DreamFlows)
+// with fallback to direct USGS if server API unavailable
 // ============================
 async function fetchAllData() {
   const btn = document.getElementById('refresh-btn');
@@ -188,69 +540,89 @@ async function fetchAllData() {
   btn.textContent = 'Loading...';
   document.getElementById('loading-overlay').style.display = 'flex';
 
-  try {
-    const resp = await fetch('/api/rivers');
-    if (!resp.ok) throw new Error(`API ${resp.status}`);
-    const data = await resp.json();
-
-    // FastAPI returns a flat list; old start.py returned {rivers: [...], fetched_at}
-    const rivers = Array.isArray(data) ? data : (data.rivers || []);
-
-    // Build RIVERS config and riverData from server response
-    // FastAPI uses camelCase: latitude, longitude, currentCfs, waterTempF, statusReason
-    RIVERS = {};
-    riverData = {};
-    for (const r of rivers) {
-      RIVERS[r.id] = {
-        name: r.name,
-        lat: r.latitude,
-        lng: r.longitude,
-        riverType: r.riverType || '',
-        fishingModes: r.fishingModes || ['wade'],
-        modeStatuses: r.modeStatuses || null,
-      };
-      riverData[r.id] = {
-        cfs: r.currentCfs !== undefined ? r.currentCfs : (r.cfs !== undefined ? r.cfs : null),
-        tempF: r.waterTempF !== undefined ? r.waterTempF : (r.tempF !== undefined ? r.tempF : null),
-        status: r.status || 'red',
-        reason: r.statusReason || r.reason || 'No data',
-        trend: r.trend || 'stable',
-        trendContext: r.trendContext || '',
-        updatedAt: r.updatedAt || null,
-      };
+  // Always create markers first so map shows river locations regardless of data
+  if (Object.keys(markers).length === 0) {
+    for (const [id, river] of Object.entries(RIVERS)) {
+      const marker = L.circleMarker([river.lat, river.lng], {
+        radius: 14, fillColor: '#94a3b8', fillOpacity: 0.85,
+        color: 'white', weight: 3, opacity: 1
+      }).addTo(map);
+      marker.on('click', () => selectRiver(id));
+      markers[id] = marker;
     }
-
-    // Create map markers on first load
-    if (Object.keys(markers).length === 0) {
-      for (const [id, river] of Object.entries(RIVERS)) {
-        const marker = L.circleMarker([river.lat, river.lng], {
-          radius: 14, fillColor: '#94a3b8', fillOpacity: 0.85,
-          color: 'white', weight: 3, opacity: 1
-        }).addTo(map);
-        marker.on('click', () => selectRiver(id));
-        markers[id] = marker;
-      }
-      const bounds = Object.values(RIVERS).map(r => [r.lat, r.lng]);
-      if (bounds.length) map.fitBounds(bounds, { padding: [60, 60] });
-    }
-
-    // Update timestamp display
-    const fetchedAt = Array.isArray(data) ? null : data.fetched_at;
-    const firstUpdatedAt = rivers.length > 0 ? (rivers[0].updatedAt || fetchedAt) : fetchedAt;
-    if (firstUpdatedAt) {
-      document.getElementById('update-time').textContent =
-        `Updated ${new Date(firstUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    }
-
-    const g = rivers.filter(r => r.status === 'green').length;
-    const y = rivers.filter(r => r.status === 'yellow').length;
-    const rd = rivers.filter(r => r.status === 'red').length;
-    document.getElementById('river-count').textContent = `${g} Green · ${y} Yellow · ${rd} Red`;
-
-  } catch (e) {
-    console.error('Failed to load data:', e);
-    document.getElementById('river-count').textContent = 'Error loading data';
+    const bounds = Object.values(RIVERS).map(r => [r.lat, r.lng]);
+    if (bounds.length) map.fitBounds(bounds, { padding: [60, 60] });
   }
+
+  // Initialize riverData with defaults for all rivers
+  riverData = {};
+  for (const [id, river] of Object.entries(RIVERS)) {
+    riverData[id] = { cfs: null, tempF: null, status: 'red', reason: 'Loading...', trend: 'stable', trendContext: '', updatedAt: null };
+  }
+  renderSidebar();
+  updateMarkers();
+
+  let usgsData = {};
+
+  try {
+    // Try our server API first (has USGS + DreamFlows data, updated every 15 min)
+    const apiResp = await fetchJSON('/api/flows');
+    if (apiResp && apiResp.usgs) {
+      usgsData = apiResp.usgs;
+      console.log(`[api] Server data: ${Object.keys(usgsData).length} USGS sites, DF fetch: ${apiResp.lastDreamflowsFetch || 'n/a'}`);
+    }
+  } catch (apiErr) {
+    console.warn('[api] Server API unavailable, falling back to direct USGS fetch:', apiErr.message);
+    // Fallback: fetch directly from USGS (works when served from localhost/https)
+    try {
+      const siteIds = Object.values(RIVERS).map(r => r.usgs).filter(Boolean);
+      const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${siteIds.join(',')}&parameterCd=00060,00010&siteStatus=active`;
+      const json = await fetchJSON(url);
+      const timeSeries = json.value?.timeSeries || [];
+      for (const ts of timeSeries) {
+        const siteCode = ts.sourceInfo?.siteCode?.[0]?.value;
+        const paramCode = ts.variable?.variableCode?.[0]?.value;
+        const values = ts.values?.[0]?.value;
+        if (!siteCode || !values || values.length === 0) continue;
+        const latest = values[values.length - 1];
+        const val = parseFloat(latest.value);
+        if (isNaN(val) || val < 0) continue;
+        if (!usgsData[siteCode]) usgsData[siteCode] = { source: 'usgs-direct' };
+        if (paramCode === '00060') {
+          usgsData[siteCode].cfs = val;
+          usgsData[siteCode].updatedAt = latest.dateTime;
+        } else if (paramCode === '00010') {
+          usgsData[siteCode].tempF = Math.round((val * 9/5 + 32) * 10) / 10;
+        }
+      }
+    } catch (usgsErr) {
+      console.error('[usgs] Direct fetch also failed:', usgsErr.message);
+      document.getElementById('river-count').textContent = `Error: ${usgsErr.message}`;
+      for (const [id] of Object.entries(RIVERS)) {
+        riverData[id] = { cfs: null, tempF: null, status: 'red', reason: 'No flow data — ' + usgsErr.message, trend: 'stable', trendContext: '', updatedAt: null };
+      }
+    }
+  }
+
+  // Map data onto our rivers
+  for (const [id, river] of Object.entries(RIVERS)) {
+    const d = river.usgs ? usgsData[river.usgs] : null;
+    const cfs = d?.cfs ?? null;
+    const tempF = d?.tempF ?? null;
+    const { status, reason } = calculateStatus(cfs, tempF, river.thresholds);
+    riverData[id] = { cfs, tempF, status, reason, trend: 'stable', trendContext: '', updatedAt: d?.updatedAt || null };
+  }
+
+  // Update counts and timestamp
+  const statuses = Object.values(riverData);
+  const g = statuses.filter(d => d.status === 'green').length;
+  const y = statuses.filter(d => d.status === 'yellow').length;
+  const rd = statuses.filter(d => d.status === 'red').length;
+  document.getElementById('river-count').textContent = `${g} Green · ${y} Yellow · ${rd} Red`;
+
+  const now = new Date();
+  document.getElementById('update-time').textContent =
+    `Updated ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
   document.getElementById('loading-overlay').style.display = 'none';
   btn.disabled = false;
@@ -260,11 +632,31 @@ async function fetchAllData() {
   updateMarkers();
 }
 
+// Generic JSON fetch helper (replaces fetchUSGS XMLHttpRequest)
+function fetchJSON(url) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.timeout = 20000;
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(xhr.response);
+      } else {
+        reject(new Error(`HTTP ${xhr.status}`));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.ontimeout = () => reject(new Error('Request timed out'));
+    xhr.send();
+  });
+}
+
 // ============================
 // MAP
 // ============================
 function initMap() {
-  map = L.map('map', { zoomControl: true }).setView([38.9, -120.4], 7);
+  map = L.map('map', { zoomControl: true }).setView([38.2, -120.2], 6);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
     maxZoom: 18,
@@ -380,24 +772,29 @@ function selectRiver(id) {
 // ============================
 async function showDetail(id) {
   const panel = document.getElementById('detail-panel');
-  const body = document.getElementById('detail-body');
   panel.classList.add('visible');
 
   const river = RIVERS[id];
   const data = riverData[id] || {};
 
-  // Show river name immediately while detail loads
-  body.innerHTML = `
-    <div class="detail-name">${river.name}</div>
-    <div style="padding:16px 0;color:#94a3b8;font-size:13px;">Loading details...</div>
-  `;
+  // Build detail object from embedded config
+  const detail = {
+    thresholds: river.thresholds,
+    notes: river.notes || '',
+    gaugeInfo: river.usgs ? `USGS ${river.usgs}` : '',
+    blownOutCfs: river.blownOutCfs || null,
+    dangerousWadeCfs: river.dangerousWadeCfs || null,
+    trendContext: data.trendContext || '',
+  };
 
-  let detail = null;
-  try {
-    const resp = await fetch(`/api/rivers/${id}`);
-    if (resp.ok) detail = await resp.json();
-  } catch (e) {
-    console.error('Failed to load river detail:', e);
+  // Build mode statuses for dual-mode rivers
+  if (river.fishingModes && river.fishingModes.length > 1) {
+    detail.modeStatuses = river.fishingModes.map(mode => {
+      const t = mode === 'wade' ? river.wadeThresholds : mode === 'drift' ? river.driftThresholds : river.thresholds;
+      if (!t) return { mode, status: data.status, statusReason: data.reason };
+      const { status, reason } = calculateStatus(data.cfs, data.tempF, t);
+      return { mode, status, statusReason: reason };
+    });
   }
 
   renderDetailPanel(id, river, data, detail);
