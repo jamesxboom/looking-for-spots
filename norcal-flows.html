@@ -162,23 +162,26 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .popup-link:hover { text-decoration: underline; }
 
 /* Mobile Bottom Nav */
-.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; padding: 8px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; padding: 8px; justify-content: space-around; align-items: center; z-index: 999; }
 .nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 8px 16px; color: #64748b; transition: color 0.2s; }
 .nav-btn.active { color: #2563eb; }
 .nav-btn:hover { color: #1e293b; }
 
 /* Responsive */
 @media (max-width: 900px) {
-  .sidebar { display: none; }
-  .sidebar.visible { display: flex; width: 100%; }
-  .map-container { display: none; }
+  .main { position: relative; }
+  .sidebar { display: none; width: 100%; }
+  .sidebar.visible { display: flex; }
+  .map-container { display: none; width: 100%; height: 100%; }
   .map-container.visible { display: block; }
-  .detail-panel { position: absolute; bottom: 60px; left: 0; right: 0; width: 100%; max-height: 60vh; z-index: 1000; border-left: none; border-top: 1px solid #e2e8f0; border-radius: 16px 16px 0 0; }
+  #map { width: 100%; height: calc(100vh - 60px - 56px); }
+  .detail-panel { position: fixed; bottom: 56px; left: 0; right: 0; width: 100%; max-height: 60vh; z-index: 1000; border-left: none; border-top: 1px solid #e2e8f0; border-radius: 16px 16px 0 0; overflow-y: auto; }
   .detail-panel.visible { display: block; }
   .mobile-bottom-nav { display: flex; }
   .footer { display: none; }
   .header h1 span { font-size: 20px; }
   .header h1 { font-size: 16px; }
+  .river-list { padding-bottom: 60px; }
 }
 
 @media (max-width: 600px) {
@@ -1702,17 +1705,34 @@ function setViewMode(mode) {
   viewMode = mode;
   const sidebar = document.getElementById('sidebar');
   const mapContainer = document.getElementById('map-container');
+  const detailPanel = document.getElementById('detail-panel');
+
+  // Close detail panel when switching views on mobile
+  if (detailPanel) detailPanel.classList.remove('visible');
 
   if (mode === 'list') {
     sidebar.classList.add('visible');
     mapContainer.classList.remove('visible');
     document.getElementById('nav-list').classList.add('active');
     document.getElementById('nav-map').classList.remove('active');
+    document.getElementById('nav-spots').classList.remove('active');
   } else {
     sidebar.classList.remove('visible');
     mapContainer.classList.add('visible');
     document.getElementById('nav-list').classList.remove('active');
     document.getElementById('nav-map').classList.add('active');
+    document.getElementById('nav-spots').classList.remove('active');
+    // Critical: Leaflet needs to recalculate size after container becomes visible
+    setTimeout(() => {
+      if (map) {
+        map.invalidateSize();
+        // Re-fit bounds if no river is selected
+        if (!selectedRiverId) {
+          const bounds = Object.values(RIVERS).map(r => [r.lat, r.lng]);
+          if (bounds.length) map.fitBounds(bounds, { padding: [40, 40] });
+        }
+      }
+    }, 100);
   }
 }
 
@@ -1742,6 +1762,16 @@ function setupGeolocation() {
 // ============================
 initMap();
 setupGeolocation();
+
+// Set initial view mode — on mobile default to list, on desktop both are visible
+if (window.innerWidth <= 900) {
+  setViewMode('list');
+} else {
+  // On desktop, ensure sidebar is visible (it's flex layout, not toggle-based)
+  document.getElementById('sidebar').classList.add('visible');
+  document.getElementById('map-container').classList.add('visible');
+}
+
 fetchAllData();
 setInterval(fetchAllData, 15 * 60 * 1000);
 </script>
