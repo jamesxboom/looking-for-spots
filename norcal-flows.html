@@ -16,27 +16,45 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .header h1 span { font-size: 24px; }
 .header-right { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #64748b; }
-.refresh-btn { background: #2563eb; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; }
-.refresh-btn:hover { background: #1d4ed8; }
+.header-controls { display: flex; align-items: center; gap: 8px; }
+.refresh-btn, .header-btn { background: #2563eb; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; }
+.refresh-btn:hover, .header-btn:hover { background: #1d4ed8; }
 .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.header-btn { background: #64748b; font-size: 11px; padding: 5px 12px; }
+.header-btn:hover { background: #475569; }
+.header-btn.active { background: #2563eb; }
 
 .main { display: flex; flex: 1; overflow: hidden; }
 
 /* Sidebar */
 .sidebar { width: 380px; background: #f8fafc; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
-.sidebar-header { padding: 14px 16px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
-.sidebar-header h2 { font-size: 14px; font-weight: 600; }
-.sort-select { font-size: 12px; padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 6px; background: white; font-family: inherit; color: #1e293b; }
+.sidebar-header { padding: 14px 16px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.sidebar-header h2 { font-size: 13px; font-weight: 600; flex: 1; min-width: 150px; }
+.filter-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sort-select, .distance-filter, .favorites-toggle { font-size: 11px; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 6px; background: white; font-family: inherit; color: #1e293b; }
+.favorites-toggle { background: white; border: 1px solid #d1d5db; padding: 5px 12px; cursor: pointer; }
+.favorites-toggle.active { background: #2563eb; color: white; border-color: #2563eb; }
 .river-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 
+/* Best Bet Banner */
+.best-bet-banner { background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 100%); border: 1px solid #86efac; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.best-bet-title { font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.best-bet-card { background: white; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: all 0.2s; border-left: 3px solid #22c55e; }
+.best-bet-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.best-bet-name { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 4px; }
+.best-bet-stats { font-size: 12px; color: #64748b; }
+
 /* River Card */
-.river-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease; }
+.river-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease; position: relative; }
 .river-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #cbd5e1; transform: translateY(-1px); }
 .river-card.selected { border: 2px solid #2563eb; box-shadow: 0 4px 16px rgba(37,99,235,0.15); }
 .river-card.status-green { border-left: 4px solid #22c55e; }
 .river-card.status-yellow { border-left: 4px solid #eab308; }
 .river-card.status-red { border-left: 4px solid #ef4444; }
-.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.card-favorite { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; }
+.card-favorite:hover { opacity: 1; }
+.card-favorite.active { opacity: 1; }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; }
 .card-info { flex: 1; min-width: 0; }
 .card-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
 .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
@@ -50,6 +68,8 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .badge-yellow { background: #fefce8; color: #a16207; }
 .badge-red { background: #fef2f2; color: #dc2626; }
 .card-reason { font-size: 12px; color: #64748b; margin-top: 6px; line-height: 1.4; }
+.card-distance { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+.weather-icon { font-size: 14px; margin-left: 4px; }
 .trend-arrow { font-weight: 700; font-size: 13px; }
 .trend-arrow.rising { color: #ef4444; }
 .trend-arrow.falling { color: #22c55e; }
@@ -64,8 +84,11 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .detail-panel.visible { display: block; }
 .detail-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; background: white; z-index: 10; }
 .back-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #2563eb; padding: 4px; }
+.detail-favorite { background: none; border: none; font-size: 20px; cursor: pointer; margin-left: auto; opacity: 0.6; }
+.detail-favorite:hover { opacity: 1; }
+.detail-favorite.active { opacity: 1; }
 .detail-body { padding: 20px; }
-.detail-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.detail-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
 .detail-type { font-size: 12px; color: #94a3b8; margin-bottom: 16px; font-family: monospace; }
 .detail-status-bar { padding: 14px 16px; border-radius: 10px; margin-bottom: 14px; }
 .detail-status-bar.green { background: #f0fdf4; border: 1px solid #bbf7d0; }
@@ -82,6 +105,22 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .stat-label { font-size: 11px; font-weight: 500; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 .stat-value { font-size: 20px; font-weight: 700; }
 .stat-context { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+/* Weather Display */
+.weather-section { background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px; margin-bottom: 20px; }
+.weather-title { font-size: 12px; font-weight: 600; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.weather-item { background: white; border-radius: 8px; padding: 10px; }
+.weather-label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px; margin-bottom: 2px; }
+.weather-value { font-size: 16px; font-weight: 700; color: #1e293b; }
+.weather-forecast { grid-column: 1 / -1; background: white; border-radius: 8px; padding: 10px; }
+.weather-forecast-label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px; margin-bottom: 4px; }
+.weather-forecast-text { font-size: 13px; color: #1e293b; line-height: 1.4; }
+
+/* Hatch Calendar */
+.hatch-section { background: linear-gradient(135deg, #fef9c3 0%, #f0fdf4 100%); border: 1px solid #fcd34d; border-radius: 10px; padding: 14px; margin-bottom: 20px; }
+.hatch-title { font-size: 12px; font-weight: 600; color: #854d0e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.hatch-text { font-size: 13px; color: #713f12; line-height: 1.5; }
 
 .flow-range-bar { margin-bottom: 20px; }
 .flow-range-label { font-size: 12px; font-weight: 500; color: #64748b; margin-bottom: 8px; }
@@ -122,10 +161,36 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .popup-link { display: block; margin-top: 8px; font-size: 12px; color: #2563eb; font-family: 'Inter', sans-serif; cursor: pointer; }
 .popup-link:hover { text-decoration: underline; }
 
+/* Mobile Bottom Nav */
+.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; padding: 8px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+.nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 8px 16px; color: #64748b; transition: color 0.2s; }
+.nav-btn.active { color: #2563eb; }
+.nav-btn:hover { color: #1e293b; }
+
 /* Responsive */
 @media (max-width: 900px) {
   .sidebar { display: none; }
-  .detail-panel { position: absolute; bottom: 0; left: 0; right: 0; width: 100%; max-height: 60vh; z-index: 1000; border-left: none; border-top: 1px solid #e2e8f0; border-radius: 16px 16px 0 0; }
+  .sidebar.visible { display: flex; width: 100%; }
+  .map-container { display: none; }
+  .map-container.visible { display: block; }
+  .detail-panel { position: absolute; bottom: 60px; left: 0; right: 0; width: 100%; max-height: 60vh; z-index: 1000; border-left: none; border-top: 1px solid #e2e8f0; border-radius: 16px 16px 0 0; }
+  .detail-panel.visible { display: block; }
+  .mobile-bottom-nav { display: flex; }
+  .footer { display: none; }
+  .header h1 span { font-size: 20px; }
+  .header h1 { font-size: 16px; }
+}
+
+@media (max-width: 600px) {
+  .sidebar-header { padding: 10px 12px; }
+  .sidebar-header h2 { font-size: 12px; }
+  .sort-select, .distance-filter { font-size: 10px; }
+  .river-card { padding: 12px 14px; border-radius: 10px; }
+  .card-name { font-size: 13px; }
+  .card-stats { font-size: 12px; }
+  .detail-body { padding: 16px; }
+  .detail-name { font-size: 18px; }
+  .stat-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -135,22 +200,37 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
     <h1><span>🎣</span> Looking For Spots</h1>
     <div class="header-right">
       <span id="update-time"></span>
-      <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Refresh</button>
+      <div class="header-controls">
+        <button class="header-btn" id="view-toggle" style="display:none;">List</button>
+        <button class="header-btn" id="geolocation-btn" title="Find nearby spots">📍 Near Me</button>
+        <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Refresh</button>
+      </div>
     </div>
   </div>
   <div class="main">
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h2 id="river-count">Loading...</h2>
-        <select class="sort-select" id="sort-select" onchange="renderSidebar()">
-          <option value="status">Sort by Status</option>
-          <option value="name">Sort by Name</option>
-          <option value="cfs">Sort by Flow</option>
-        </select>
+        <div class="filter-group">
+          <button class="favorites-toggle" id="favorites-toggle" onclick="toggleFavoritesFilter()">My Spots</button>
+          <select class="sort-select" id="sort-select" onchange="renderSidebar()">
+            <option value="status">Sort by Status</option>
+            <option value="name">Sort by Name</option>
+            <option value="cfs">Sort by Flow</option>
+            <option value="distance">Sort by Distance</option>
+          </select>
+          <select class="distance-filter" id="distance-filter" onchange="renderSidebar()" style="display:none;">
+            <option value="any">Any Distance</option>
+            <option value="30min">< 30 min</option>
+            <option value="1hour">< 1 hour</option>
+            <option value="2hours">< 2 hours</option>
+          </select>
+        </div>
       </div>
+      <div id="best-bet-container" style="display:none;padding:12px;"></div>
       <div class="river-list" id="river-list"></div>
     </div>
-    <div class="map-container">
+    <div class="map-container" id="map-container">
       <div id="map"></div>
       <div class="loading-overlay" id="loading-overlay">
         <div class="loading-spinner">Loading river conditions...</div>
@@ -160,9 +240,15 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
       <div class="detail-header">
         <button class="back-btn" onclick="closeDetail()">←</button>
         <span style="font-weight:600;font-size:14px;">River Details</span>
+        <button class="detail-favorite" id="detail-favorite-btn" onclick="toggleFavorite(selectedRiverId)" title="Add to My Spots">☆</button>
       </div>
       <div class="detail-body" id="detail-body"></div>
     </div>
+  </div>
+  <div class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="nav-btn active" id="nav-list" onclick="setViewMode('list')" title="List View">📋</button>
+    <button class="nav-btn" id="nav-map" onclick="setViewMode('map')" title="Map View">🗺️</button>
+    <button class="nav-btn" id="nav-spots" onclick="setViewMode('list');toggleFavoritesFilter();" title="My Spots">⭐</button>
   </div>
   <div class="footer">
     Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a> &middot; Provisional, not verified &middot; Not for safety decisions &middot; Auto-refreshes every 15 min
@@ -176,10 +262,13 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 // ============================
 let selectedRiverId = null;
 let map, markers = {};
-let riverData = {}; // id -> { cfs, tempF, status, reason, trend, trendContext, updatedAt }
+let riverData = {};
+let userLocation = null;
+let viewMode = 'list'; // 'list' or 'map'
+let favoritesFilter = false;
 
 // ============================
-// RIVER CONFIGS — embedded so no backend needed
+// RIVER CONFIGS
 // ============================
 const RIVERS = {
   lower_sacramento: {
@@ -345,10 +434,6 @@ const RIVERS = {
     thresholds: { greenFloor:8, greenCeiling:50, yellowFloor:5, yellowCeiling:70, rapidChange:10 },
     notes: "Tiny spring creek. Very technical. Fishable year-round."
   },
-
-  // ==========================================
-  // SACRAMENTO VALLEY
-  // ==========================================
   clear_creek: {
     name: "Clear Creek", riverType: "tailwater", lat: 40.5135, lng: -122.5249,
     usgs: "11372000", fishingModes: ["wade"],
@@ -386,10 +471,6 @@ const RIVERS = {
     thresholds: { greenFloor:50, greenCeiling:200, yellowFloor:30, yellowCeiling:350, rapidChange:50 },
     notes: "Below Lake Berryessa. Wild trout tailwater. Walk-and-wade only."
   },
-
-  // ==========================================
-  // WEST SIERRA — NORTHERN
-  // ==========================================
   mf_feather_portola: {
     name: "Mi. Feather (Portola)", riverType: "freestone", lat: 39.8188, lng: -120.4447,
     usgs: null, dfSite: "736", fishingModes: ["wade"],
@@ -465,10 +546,6 @@ const RIVERS = {
     thresholds: { greenFloor:300, greenCeiling:1200, yellowFloor:200, yellowCeiling:2000, rapidChange:300 },
     notes: "Below Goodwin Dam. Tailwater trout and steelhead. Goodwin schedule controls flows."
   },
-
-  // ==========================================
-  // WEST SIERRA — SOUTHERN
-  // ==========================================
   tuolumne_hh: {
     name: "Tuolumne (Hetch Hetchy)", riverType: "dam_controlled", lat: 37.9378, lng: -119.7978,
     usgs: "11276500", fishingModes: ["wade"],
@@ -550,10 +627,6 @@ const RIVERS = {
     thresholds: { greenFloor:200, greenCeiling:600, yellowFloor:100, yellowCeiling:1000, rapidChange:150 },
     notes: "Below Lake Isabella. Planted and wild trout. Popular Central Valley destination."
   },
-
-  // ==========================================
-  // EAST SIERRA (additional)
-  // ==========================================
   west_walker_coleville: {
     name: "West Walker River (Coleville)", riverType: "freestone", lat: 38.3796, lng: -119.4502,
     usgs: "10296000", fishingModes: ["wade"],
@@ -589,10 +662,6 @@ const RIVERS = {
     dangerousWadeCfs: 300,
     notes: "At Woodfords. Smaller stream, excellent wild trout. Meadow and canyon sections."
   },
-
-  // ==========================================
-  // SACRAMENTO VALLEY (additional spots)
-  // ==========================================
   cottonwood_creek: {
     name: "Cottonwood Creek", riverType: "freestone", lat: 40.3871, lng: -122.2386,
     usgs: "11376000", fishingModes: ["wade"],
@@ -605,6 +674,306 @@ const RIVERS = {
     thresholds: { greenFloor:30, greenCeiling:120, yellowFloor:15, yellowCeiling:200, rapidChange:30 },
     notes: "Near Paskenta. Small pristine freestone. Remote, difficult access. Wild trout."
   },
+};
+
+// ============================
+// HATCH DATA
+// ============================
+const HATCH_DATA = {
+  lower_sacramento: {
+    1: "Winter: egg patterns, midges, Tubafex worms. Deep nymphing.",
+    2: "Late winter: BWO (#14-16), Tubafex, salmon eggs. Nymph under indicators.",
+    3: "Spring: Black caddis (#14-16), early mayflies. Nymph, dry-dropper.",
+    4: "Brown caddis (#14-16), early PMD emerging. Nymphing, early dry chances.",
+    5: "Caddis (#10-12), PMD emerging, Tubafex. Mixed dry-nymph, dry-dropper.",
+    6: "Large caddis (#10-12), PMD, scattered stoneflies. Dry flies morning/evening.",
+    7: "Caddis (#10-12), PMD, golden stoneflies. Evening caddis dries, streamers.",
+    8: "Caddis (#10-12), scattered mayflies, midges. Evening dry fly.",
+    9: "Caddis, early October caddis, midges. Transition to fall patterns.",
+    10: "Salmon eggs (#6), October caddis, midges. Egg patterns, nymphing.",
+    11: "Salmon eggs, BWO (#14-16), Tubafex. Nymphing, egg patterns.",
+    12: "Salmon eggs, Tubafex, midges. Deep nymphing, streamers."
+  },
+  upper_sacramento: {
+    1: "Winter: Tubafex, BWO (#14-16), salmon eggs. Deep nymphing.",
+    2: "Tubafex, BWO, salmon eggs. Euro nymphing, tight lines.",
+    3: "Caddis (#14-16), Tubafex, early stoneflies. Nymph and indicator.",
+    4: "Caddis (#14-16), BWO, stoneflies, March Browns. Nymphing dominant.",
+    5: "Caddis (#10-12), PMD, Green Drakes, stoneflies. Morning dry fly.",
+    6: "Caddis, PMD, Green Drakes, Golden Stones. Dry-nymph combos.",
+    7: "Caddis, PMD, Little Yellow Stones. Evening dry fly, streamers.",
+    8: "Caddis, Little Yellow Stones, midges. Dry fly and streamers.",
+    9: "Caddis, October caddis forming, midges. Evening caddis.",
+    10: "October caddis, midges, Tubafex, salmon eggs. Egg patterns.",
+    11: "Salmon eggs, BWO, Tubafex. Nymph under indicator.",
+    12: "Tubafex, salmon eggs, midges. Deep nymphing."
+  },
+  mccloud: {
+    1: "Winter: Skwala stoneflies, midges. Slow deep nymphing.",
+    2: "Skwala (#10), early stoneflies, midges. Nymph fishing.",
+    3: "Early stoneflies, Skwala, BWO starting. Nymphing.",
+    4: "Salmonflies (#6), March Browns, BWO. Nymph and dry.",
+    5: "Salmonfly peak, Golden Stones starting, caddis. Dry-nymph.",
+    6: "Golden Stoneflies, caddis, PMD, Green Drakes. Dry and nymph.",
+    7: "Golden Stoneflies, caddis (#14-18), PMD. Evening caddis dries.",
+    8: "Golden Stoneflies, caddis, midges. Evening caddis, streamers.",
+    9: "October caddis forming, caddis, Golden Stones tail.",
+    10: "October caddis (#6-8), caddis, BWO. October caddis dries.",
+    11: "October caddis tail, BWO, stonefly nymphs.",
+    12: "Stonefly nymphs, midges. Streamer and nymph work."
+  },
+  hat_creek: {
+    1: "Winter: Midges, stonefly nymphs. Deep presentation.",
+    2: "PMD starting (#14-18), midges. Slow Euro rigs.",
+    3: "PMD, early stoneflies, midges. Nymph and emerging dries.",
+    4: "Salmonflies (#6), caddis (#14-16), PMD. Dry-nymph.",
+    5: "Salmonfly tail, PMD, caddis, Green Drakes (#10-12). Dry.",
+    6: "PMD, caddis, Green Drakes, Blue Quills (#14-16). Dry fly.",
+    7: "Caddis, Trico (#24), Blue Quills, Pale Evening Duns (#16-18). Dry.",
+    8: "Trico (#24), caddis, Blue Quills. Trico mornings, caddis evenings.",
+    9: "Trico tail, caddis tail. Transition to fall.",
+    10: "Mahogany Duns (#14-16), Blue Quills, Trico tail.",
+    11: "Mahogany Duns, Blue Quills tail, midges. Nymphing.",
+    12: "Midges, stonefly nymphs. Slow deep nymphing."
+  },
+  pit_river_3: {
+    1: "Winter: Stonefly nymphs, midges. Deep nymphing.",
+    2: "Stonefly nymphs, early stoneflies. Nymph rigs.",
+    3: "Skwala stoneflies, BWO. Nymphing.",
+    4: "Salmonflies (#6 sporadic), Golden Stones starting, caddis. Dry-nymph.",
+    5: "Golden Stoneflies (#8-12), caddis (#14-18), PMD. Dry and nymph.",
+    6: "Golden Stoneflies, caddis, Little Yellow Stones, PMD. Dry.",
+    7: "Golden Stoneflies, caddis prolific, Little Yellow Stones. Dry.",
+    8: "Caddis dominant, Golden Stones tail, Little Yellow Stones.",
+    9: "Caddis, Little Yellow Stones tail, October caddis forming.",
+    10: "October caddis (#6-8), caddis tail. October caddis dries.",
+    11: "Stonefly nymphs, midges. Nymph rigs.",
+    12: "Stonefly nymphs, midges. Deep nymphing, streamers."
+  },
+  truckee_tahoe_city: {
+    1: "Winter: Midges, stonefly nymphs, yellow craneflies.",
+    2: "Midges, Ameletus mayflies, March Browns starting.",
+    3: "March Browns, midges, early BWO. Nymph-emerge.",
+    4: "Early BWO, stonefly nymphs. Nymphing.",
+    5: "March Browns (#12-14), PMD (#14-18), Green Drake (#10), Green Caddis. Dries.",
+    6: "BWO, PMD, Red Quill, Green Caddis, Green Drake, Sulphur. Prolific dries.",
+    7: "BWO, PMD, Green Caddis, Grannom. Mixed dry-nymph.",
+    8: "BWO, Green Caddis, Grannom, damselflies. Dry fly.",
+    9: "BWO, Green Caddis, Grannom. Dry and nymph.",
+    10: "BWO, Grannom, October Caddis (#6-8). October caddis.",
+    11: "BWO tail, stonefly nymphs. Nymph fishing.",
+    12: "Midges, stonefly nymphs. Slow deep nymphing."
+  },
+  truckee_near_truckee: {
+    1: "Winter: Midges, stonefly nymphs. Slow nymphing.",
+    2: "Midges, March Browns starting. Nymph fishing.",
+    3: "March Browns, early BWO. Nymphing.",
+    4: "BWO, stonefly nymphs. Nymphing dominant.",
+    5: "March Browns, PMD, Green Caddis, Green Drake. Dries starting.",
+    6: "BWO, PMD, Green Caddis, Green Drake, Sulphur. Prolific dries.",
+    7: "BWO, PMD, Green Caddis, Grannom. Mixed dry-nymph.",
+    8: "BWO, Green Caddis, Grannom. Dry fly.",
+    9: "BWO, Green Caddis. Dry and nymph.",
+    10: "BWO, Grannom, October Caddis. October caddis dries.",
+    11: "BWO tail, stonefly nymphs. Nymphing.",
+    12: "Midges, stonefly nymphs. Deep nymphing."
+  },
+  truckee_farad: {
+    1: "Winter: Midges, stonefly nymphs. Slow nymphing.",
+    2: "Midges, March Browns starting. Nymph fishing.",
+    3: "March Browns, early BWO. Nymphing.",
+    4: "BWO, stonefly nymphs. Nymphing dominant.",
+    5: "March Browns, PMD, Green Caddis. Dries starting.",
+    6: "BWO, PMD, Green Caddis, Green Drake. Prolific dries.",
+    7: "BWO, PMD, Green Caddis, Grannom. Mixed dry-nymph.",
+    8: "BWO, Green Caddis, Grannom. Dry fly.",
+    9: "BWO, Green Caddis. Dry and nymph.",
+    10: "BWO, Grannom, October Caddis. October caddis dries.",
+    11: "BWO tail, stonefly nymphs. Nymphing.",
+    12: "Midges, stonefly nymphs. Deep nymphing."
+  },
+  truckee_reno: {
+    1: "Winter: Midges, stonefly nymphs. Slow nymphing.",
+    2: "Midges, March Browns starting. Nymph fishing.",
+    3: "March Browns, early BWO. Nymphing.",
+    4: "BWO, stonefly nymphs. Nymphing dominant.",
+    5: "March Browns, PMD, Green Caddis. Dries starting.",
+    6: "BWO, PMD, Green Caddis. Prolific dries.",
+    7: "BWO, PMD, Green Caddis. Mixed dry-nymph.",
+    8: "BWO, Green Caddis. Dry fly.",
+    9: "BWO, Green Caddis. Dry and nymph.",
+    10: "BWO, October Caddis. October caddis dries.",
+    11: "BWO tail, stonefly nymphs. Nymphing.",
+    12: "Midges, stonefly nymphs. Deep nymphing."
+  },
+  little_truckee: {
+    1: "Winter: Midges, stonefly nymphs. Slow nymphing.",
+    2: "Midges, March Browns. Nymph fishing dominant.",
+    3: "March Browns, early BWO. Nymphing.",
+    4: "BWO, March Browns, stonefly nymphs. Nymph-emerge.",
+    5: "March Browns, PMD, caddis. Dry-nymph.",
+    6: "PMD (#14-18), caddis, BWO, midges. Prolific dry fly.",
+    7: "Caddis, PMD tail, BWO, damselflies. Evening caddis dries.",
+    8: "Caddis, midges, damselfly tail. Dry and nymph.",
+    9: "Caddis tail, midges, early BWO return. Transition.",
+    10: "BWO, midges, stonefly nymphs. Nymph and dry.",
+    11: "BWO tail, midges, stonefly nymphs. Nymphing.",
+    12: "Midges, stonefly nymphs. Deep nymphing."
+  },
+  east_walker: {
+    1: "Winter: Stonefly nymphs, midges. Deep nymphing.",
+    2: "Skwala stoneflies (#10 start), BWO. Nymphing.",
+    3: "Skwala, BWO (#16-20). Nymph-emerge.",
+    4: "BWO (#16-20), stonefly nymphs, early PMD. Nymphing.",
+    5: "PMD (#14-18), Golden Stones starting, caddis. Nymph-dry.",
+    6: "PMD, Golden Stoneflies, Little Yellow Stones, caddis (#14-18). Dry.",
+    7: "PMD, Golden Stoneflies, Little Yellow Stones, caddis. Evening caddis.",
+    8: "PMD tail, caddis, midges, Trico starting. Dry and nymph.",
+    9: "Caddis, Trico (#20-24), midges. Fall patterns.",
+    10: "Trico peak, BWO (#16-20 return), caddis tail. Nymph-dry.",
+    11: "BWO, Trico tail, midges. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  ef_carson_markleeville: {
+    1: "Winter: Stonefly nymphs, midges. Deep nymphing.",
+    2: "Stonefly nymphs, early stoneflies, BWO starting.",
+    3: "BWO (#16-18), March Browns starting. Nymph-emerge.",
+    4: "March Browns (#12-14), BWO, early caddis. Nymph-dry.",
+    5: "Salmonflies (varies), PMD (#14-18), caddis, Little Yellow Stones. Dry.",
+    6: "Salmonfly tail/peak, Golden Stones, PMD, Green Drake, caddis. Dry.",
+    7: "Golden Stones, Little Yellow Stones, PMD tail, caddis. Dry-nymph.",
+    8: "Golden Stones tail, caddis, Little Yellow Stones. Evening dry.",
+    9: "Caddis, Little Yellow Stones tail, terrestrials. Transition.",
+    10: "Terrestrials peak, stonefly nymphs, midges. Ants and hoppers.",
+    11: "Stonefly nymphs, midges, terrestrial tail. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  ef_carson_gardnerville: {
+    1: "Winter: Stonefly nymphs, midges. Deep nymphing.",
+    2: "Stonefly nymphs, early stoneflies, BWO starting.",
+    3: "BWO (#16-18), March Browns starting. Nymph-emerge.",
+    4: "March Browns (#12-14), BWO, early caddis. Nymph-dry.",
+    5: "Salmonflies (varies), PMD (#14-18), caddis, Little Yellow Stones. Dry.",
+    6: "Salmonfly tail/peak, Golden Stones, PMD, Green Drake, caddis. Dry.",
+    7: "Golden Stones, Little Yellow Stones, PMD tail, caddis. Dry-nymph.",
+    8: "Golden Stones tail, caddis, Little Yellow Stones. Evening dry.",
+    9: "Caddis, Little Yellow Stones tail, terrestrials. Transition.",
+    10: "Terrestrials peak, stonefly nymphs, midges. Ants and hoppers.",
+    11: "Stonefly nymphs, midges. Nymphing dominant.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  wf_carson: {
+    1: "Winter: Stonefly nymphs, midges. Nymph rigs.",
+    2: "Stonefly nymphs, early insects. Nymphing.",
+    3: "Early stoneflies, midges. Nymphing.",
+    4: "Stoneflies, March Browns, early caddis. Nymph, dry-dropper.",
+    5: "Salmonflies (varies), PMD, Golden Stones, caddis. Dry-nymph.",
+    6: "Golden Stones peak, PMD, Green Drake, caddis. Dry dominant.",
+    7: "Golden Stones, caddis, Little Yellow Stones. Evening caddis.",
+    8: "Golden Stones tail, caddis, midges. Mixed fishing.",
+    9: "Caddis, Little Yellow Stones tail. Transition.",
+    10: "Stonefly nymphs, midges, caddis tail. Nymph, dry-dropper.",
+    11: "Stonefly nymphs, midges. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  hot_creek: {
+    1: "Winter: Midges (#18), stonefly nymphs. Small patterns, technical.",
+    2: "Midges (#18), small nymphs. Fine tippets.",
+    3: "Midges, early activity. Small patterns #18-24.",
+    4: "Midges, BWO (#16-18). Small mayfly emergence.",
+    5: "Midges, BWO. Small patterns, technical.",
+    6: "BWO, Western Slate Winged Olives, PMD (#16), Little Green Rock Worms. Dries.",
+    7: "BWO, Slate Winged Olives, PMD, Rock Worms. Technical dry fly.",
+    8: "BWO, Slate Winged Olives, PMD, Rock Worms. Weeds late Aug.",
+    9: "Midges, Trico (#20-24). Fine tippets, small dries.",
+    10: "Midges, BWO, Trico. Fall dry fly.",
+    11: "Midges, stonefly nymphs. Small nymphs.",
+    12: "Midges (#18), stonefly nymphs. Technical spring creek."
+  },
+  lower_owens: {
+    1: "BWO (#16-18), caddis (#12-18), midges. Cold water nymphing.",
+    2: "BWO, caddis, midges. Nymph rigs.",
+    3: "BWO, caddis, early mayflies. Nymphing.",
+    4: "BWO, caddis, early activity. Nymph and occasional dry.",
+    5: "BWO tail, PMD (#16-20), Spotted Sedge (#14-18), caddis.",
+    6: "PMD, Spotted Sedge, Grannom (#14-16), caddis. Summer hatches.",
+    7: "PMD tail, caddis, Spotted Sedge. High water season.",
+    8: "Caddis, Grannom tail, Spotted Sedge tail.",
+    9: "Caddis, midges, stonefly nymphs. Transition to fall.",
+    10: "PMD (#16-18), caddis, midges. Fall fishing.",
+    11: "PMD, caddis, midges. Nymph increasing.",
+    12: "Caddis, PMD, midges. Cold water nymphing."
+  },
+  upper_owens: {
+    1: "Midges, stonefly nymphs. Deep nymphing.",
+    2: "Midges, early stoneflies, Golden Stoneflies starting.",
+    3: "Golden Stoneflies, midges. Early stonefly fishing.",
+    4: "Caddis (Brown/Black #16), midges. Drag-free drift.",
+    5: "Caddis (#16), beadhead nymphs, streamers for big fish.",
+    6: "Caddis, mayflies, streamers (larger fish returning).",
+    7: "Caddis, mayflies, dries for smaller fish. Dry fly.",
+    8: "Caddis, mayflies, midges. Dry fly dominant.",
+    9: "Caddis tail, midges. Transition patterns.",
+    10: "Egg patterns (#16-20), San Juan worms, streamers. Browns migrating.",
+    11: "Egg patterns, San Juan worms, midges. Nymph and egg.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  putah_creek: {
+    1: "Midges (cream, green, blood red), BWO #18-20. Year-round.",
+    2: "Midges dominate, BWO. Winter patterns.",
+    3: "Midges, BWO. Nymph and indicator.",
+    4: "Midges, BWO, Spotted Sedges starting (#14-18).",
+    5: "Midges, BWO, Spotted Sedges, Green Sedges (#14-18).",
+    6: "Midges, BWO, Spotted Sedges, Green Sedges, terrestrials. Dry-nymph.",
+    7: "Midges, Spotted Sedges, terrestrials (ants, hoppers). Terrestrial peak.",
+    8: "Midges, Spotted Sedges, terrestrials. Stable flows. Dry.",
+    9: "Midges, Spotted Sedges, terrestrials. Fall terrestrials.",
+    10: "Spotted Sedges tail, midges, BWO. Transition.",
+    11: "Midges dominate, BWO. Winter fishing starting.",
+    12: "Midges year-round, BWO. Dry fly on mild days."
+  },
+  merced_yosemite: {
+    1: "Stonefly nymphs, midges. Deep nymphing.",
+    2: "Small BWO (#16-20), Golden Stoneflies starting. Nymph-emerge.",
+    3: "Golden Stoneflies, Little Yellow Stones starting.",
+    4: "Golden Stoneflies (#8-12), Little Yellow Stones (#16). Nymph-dry.",
+    5: "Little Yellow Stones, Golden Stones tail, caddis.",
+    6: "Little Yellow Stones peak, PMD (#14-18), caddis emerging. Best season.",
+    7: "Little Yellow Stones, PMD, caddis varieties. Dry fly.",
+    8: "PMD, caddis, Dark Red Quills (#14-16). Dry dominant.",
+    9: "PMD, caddis, Yellow Quills, Pale Evening Duns, Trico. Dry fly.",
+    10: "Trico, PMD tail, October Caddis (#8-12). October caddis.",
+    11: "October Caddis tail, Trico tail. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  },
+  yuba: {
+    1: "Skwala stoneflies (#10), BWO (#18-20), midges. Nymphing.",
+    2: "Skwala, midges. Slow nymphing.",
+    3: "Skwala tail, March Browns starting. Nymphing.",
+    4: "March Browns (#12-14), Skwala tail, early caddis. Nymph-emerge.",
+    5: "Caddis (#14-18), PMD, Golden Stones (#8-12), Little Yellow Stones. Dry.",
+    6: "Little Yellow Stones, Golden Stones, PMD, caddis. Dry fly.",
+    7: "Golden Stones peak, caddis, Little Yellow Stones, Spotted Sedges. Dry.",
+    8: "Caddis, Little Yellow Stones tail, Spotted Sedges. Dry and nymph.",
+    9: "Caddis tail, Little Yellow Stones tail. Transition.",
+    10: "Stonefly nymphs, midges, caddis tail. Nymph, dry-dropper.",
+    11: "Stonefly nymphs, midges, early Skwala. Nymphing.",
+    12: "Stonefly nymphs, midges, Skwala starting. Slow nymphing."
+  },
+  north_fork_american: {
+    1: "Stonefly nymphs, midges. Deep nymphing.",
+    2: "Stonefly nymphs, early insects. Nymphing.",
+    3: "Early stoneflies, midges. Nymphing, wet flies.",
+    4: "Stoneflies, early caddis, midges. Nymph-emerge.",
+    5: "PMD, caddis, stoneflies, Little Yellow Stones. Dry-nymph.",
+    6: "PMD, caddis, Little Yellow Stones, Golden Stones. Dry fly.",
+    7: "Caddis, PMD tail, Little Yellow Stones. Evening dry.",
+    8: "Caddis, Little Yellow Stones tail, midges. Mixed.",
+    9: "Caddis tail, stonefly nymphs. Transition to fall.",
+    10: "Stonefly nymphs, midges, October caddis. Nymph, dry-dropper.",
+    11: "Stonefly nymphs, midges. Nymphing.",
+    12: "Stonefly nymphs, midges. Deep nymphing."
+  }
 };
 
 // ============================
@@ -633,7 +1002,6 @@ function calculateStatus(cfs, tempF, thresholds) {
     reason = `Too high (${Math.round(cfs).toLocaleString()} cfs) — max fishable: ${yellowCeiling.toLocaleString()}`;
   }
 
-  // Temperature overrides
   if (tempF !== null && tempF !== undefined) {
     if (tempF > 68) {
       status = 'red';
@@ -648,8 +1016,82 @@ function calculateStatus(cfs, tempF, thresholds) {
 }
 
 // ============================
-// DATA LOADING — from /api/flows (server fetches USGS + DreamFlows)
-// with fallback to direct USGS if server API unavailable
+// DISTANCE CALCULATION
+// ============================
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 3959; // Earth's radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function minutesToDistance(miles) {
+  const milesPerHour = 30;
+  return (miles / milesPerHour) * 60;
+}
+
+// ============================
+// FAVORITES MANAGEMENT
+// ============================
+function getFavorites() {
+  const stored = localStorage.getItem('lookingForSpots_favorites');
+  return stored ? JSON.parse(stored) : [];
+}
+
+function saveFavorites(favs) {
+  localStorage.setItem('lookingForSpots_favorites', JSON.stringify(favs));
+}
+
+function toggleFavorite(id) {
+  const favs = getFavorites();
+  const idx = favs.indexOf(id);
+  if (idx > -1) favs.splice(idx, 1);
+  else favs.push(id);
+  saveFavorites(favs);
+
+  // Update UI
+  const favBtn = document.getElementById('detail-favorite-btn');
+  if (favBtn) favBtn.classList.toggle('active', favs.includes(id));
+  renderSidebar();
+  if (selectedRiverId) showDetail(selectedRiverId);
+}
+
+function toggleFavoritesFilter() {
+  favoritesFilter = !favoritesFilter;
+  const btn = document.getElementById('favorites-toggle');
+  btn.classList.toggle('active', favoritesFilter);
+  renderSidebar();
+}
+
+function getBestBet() {
+  const favs = getFavorites();
+  if (favs.length === 0) return null;
+
+  const statusPriority = { green: 0, yellow: 1, red: 2 };
+  let best = null;
+  let bestScore = 999;
+
+  for (const id of favs) {
+    const river = RIVERS[id];
+    const data = riverData[id];
+    if (!data) continue;
+
+    const statusScore = statusPriority[data.status] || 3;
+    if (statusScore < bestScore) {
+      best = id;
+      bestScore = statusScore;
+    }
+  }
+
+  return best;
+}
+
+// ============================
+// DATA LOADING
 // ============================
 async function fetchAllData() {
   const btn = document.getElementById('refresh-btn');
@@ -657,7 +1099,6 @@ async function fetchAllData() {
   btn.textContent = 'Loading...';
   document.getElementById('loading-overlay').style.display = 'flex';
 
-  // Always create markers first so map shows river locations regardless of data
   if (Object.keys(markers).length === 0) {
     for (const [id, river] of Object.entries(RIVERS)) {
       const marker = L.circleMarker([river.lat, river.lng], {
@@ -671,28 +1112,29 @@ async function fetchAllData() {
     if (bounds.length) map.fitBounds(bounds, { padding: [60, 60] });
   }
 
-  // Initialize riverData with defaults for all rivers
   riverData = {};
   for (const [id, river] of Object.entries(RIVERS)) {
-    riverData[id] = { cfs: null, tempF: null, status: 'red', reason: 'Loading...', trend: 'stable', trendContext: '', updatedAt: null };
+    riverData[id] = { cfs: null, tempF: null, status: 'red', reason: 'Loading...', trend: 'stable', trendContext: '', distance: null, weather: null, updatedAt: null };
   }
   renderSidebar();
   updateMarkers();
 
   let usgsData = {};
   let dfData = {};
+  let trendData = {};
+  let weatherData = {};
 
   try {
-    // Try our server API first (has USGS + DreamFlows data, updated every 15 min)
     const apiResp = await fetchJSON('/api/flows');
     if (apiResp && apiResp.usgs) {
       usgsData = apiResp.usgs;
       dfData = apiResp.dreamflows || {};
-      console.log(`[api] Server data: ${Object.keys(usgsData).length} USGS sites, ${Object.keys(dfData).length} DreamFlows sites`);
+      trendData = apiResp.trends || {};
+      weatherData = apiResp.weather || {};
+      console.log(`[api] Server data loaded`);
     }
   } catch (apiErr) {
     console.warn('[api] Server API unavailable, falling back to direct USGS fetch:', apiErr.message);
-    // Fallback: fetch directly from USGS (works when served from localhost/https)
     try {
       const siteIds = Object.values(RIVERS).map(r => r.usgs).filter(Boolean);
       const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${siteIds.join(',')}&parameterCd=00060,00010&siteStatus=active`;
@@ -718,16 +1160,15 @@ async function fetchAllData() {
       console.error('[usgs] Direct fetch also failed:', usgsErr.message);
       document.getElementById('river-count').textContent = `Error: ${usgsErr.message}`;
       for (const [id] of Object.entries(RIVERS)) {
-        riverData[id] = { cfs: null, tempF: null, status: 'red', reason: 'No flow data — ' + usgsErr.message, trend: 'stable', trendContext: '', updatedAt: null };
+        riverData[id] = { cfs: null, tempF: null, status: 'red', reason: 'No flow data — ' + usgsErr.message, trend: 'stable', trendContext: '', distance: null, weather: null, updatedAt: null };
       }
     }
   }
 
-  // Map data onto our rivers — USGS first, DreamFlows as fallback
+  // Map data onto rivers
   for (const [id, river] of Object.entries(RIVERS)) {
     let d = river.usgs ? usgsData[river.usgs] : null;
     let source = 'usgs';
-    // Fallback to DreamFlows if no USGS data and river has a dfSite ID
     if (!d && river.dfSite && dfData[river.dfSite]) {
       d = dfData[river.dfSite];
       source = 'dreamflows';
@@ -735,10 +1176,32 @@ async function fetchAllData() {
     const cfs = d?.cfs ?? null;
     const tempF = d?.tempF ?? null;
     const { status, reason } = calculateStatus(cfs, tempF, river.thresholds);
-    riverData[id] = { cfs, tempF, status, reason, source, trend: 'stable', trendContext: '', updatedAt: d?.updatedAt || null };
+
+    // Map trends
+    let trend = 'stable';
+    let trendContext = '';
+    if (river.usgs && trendData[river.usgs]) {
+      const t = trendData[river.usgs];
+      trend = t.trend || 'stable';
+      trendContext = `${t.trend === 'rising' ? '+' : ''}${Math.round(t.change_cfs)} cfs (${t.change_pct > 0 ? '+' : ''}${t.change_pct.toFixed(1)}%) over ${t.hours.toFixed(1)} hours`;
+    }
+
+    // Distance if location available
+    let distance = null;
+    if (userLocation) {
+      distance = haversineDistance(userLocation.lat, userLocation.lng, river.lat, river.lng);
+    }
+
+    // Weather if available
+    let weather = null;
+    if (weatherData[id]) {
+      weather = weatherData[id];
+    }
+
+    riverData[id] = { cfs, tempF, status, reason, source, trend, trendContext, distance, weather, updatedAt: d?.updatedAt || null };
   }
 
-  // Update counts and timestamp
+  // Update counts
   const statuses = Object.values(riverData);
   const g = statuses.filter(d => d.status === 'green').length;
   const y = statuses.filter(d => d.status === 'yellow').length;
@@ -757,7 +1220,6 @@ async function fetchAllData() {
   updateMarkers();
 }
 
-// Generic JSON fetch helper (replaces fetchUSGS XMLHttpRequest)
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -824,17 +1286,59 @@ function updateMarkers() {
 function renderSidebar() {
   const list = document.getElementById('river-list');
   const sort = document.getElementById('sort-select').value;
+  const distFilter = document.getElementById('distance-filter').value;
   const statusOrder = { green: 0, yellow: 1, red: 2 };
 
   let entries = Object.entries(RIVERS).map(([id, river]) => ({
-    id, river, data: riverData[id] || { status: 'red', reason: 'Loading...', cfs: null, tempF: null, trend: 'stable' }
+    id, river, data: riverData[id] || { status: 'red', reason: 'Loading...', cfs: null, tempF: null, trend: 'stable', distance: null, weather: null }
   }));
 
-  if (sort === 'status') entries.sort((a, b) =>
-    (statusOrder[a.data.status] ?? 3) - (statusOrder[b.data.status] ?? 3) || a.river.name.localeCompare(b.river.name));
-  else if (sort === 'name') entries.sort((a, b) => a.river.name.localeCompare(b.river.name));
-  else if (sort === 'cfs') entries.sort((a, b) => (b.data.cfs || 0) - (a.data.cfs || 0));
+  // Apply favorites filter
+  if (favoritesFilter) {
+    const favs = getFavorites();
+    entries = entries.filter(e => favs.includes(e.id));
+  }
 
+  // Apply distance filter
+  if (userLocation && distFilter !== 'any') {
+    const maxDist = distFilter === '30min' ? 15 : distFilter === '1hour' ? 30 : 60;
+    entries = entries.filter(e => e.data.distance !== null && e.data.distance <= maxDist);
+  }
+
+  // Sorting
+  if (sort === 'status') {
+    entries.sort((a, b) =>
+      (statusOrder[a.data.status] ?? 3) - (statusOrder[b.data.status] ?? 3) || a.river.name.localeCompare(b.river.name));
+  } else if (sort === 'name') {
+    entries.sort((a, b) => a.river.name.localeCompare(b.river.name));
+  } else if (sort === 'cfs') {
+    entries.sort((a, b) => (b.data.cfs || 0) - (a.data.cfs || 0));
+  } else if (sort === 'distance') {
+    entries.sort((a, b) => (a.data.distance || 999) - (b.data.distance || 999));
+  }
+
+  // Best Bet banner
+  const bestBet = getBestBet();
+  const container = document.getElementById('best-bet-container');
+  if (bestBet && !favoritesFilter) {
+    const bbRiver = RIVERS[bestBet];
+    const bbData = riverData[bestBet];
+    container.innerHTML = `
+      <div class="best-bet-banner">
+        <div class="best-bet-title">⭐ Best Bet</div>
+        <div class="best-bet-card" onclick="selectRiver('${bestBet}')">
+          <div class="best-bet-name">${bbRiver.name}</div>
+          <div class="best-bet-stats"><strong>${Math.round(bbData.cfs || 0).toLocaleString()}</strong> cfs · <span class="status-badge badge-${bbData.status}">${bbData.status}</span></div>
+        </div>
+      </div>
+    `;
+    container.style.display = 'block';
+  } else {
+    container.style.display = 'none';
+  }
+
+  // River cards
+  const favs = getFavorites();
   list.innerHTML = entries.map(({ id, river, data }) => {
     const sel = id === selectedRiverId ? ' selected' : '';
     const cfs = data.cfs !== null && data.cfs !== undefined
@@ -847,24 +1351,34 @@ function renderSidebar() {
     const trendClass = trend === 'rising' ? 'rising' : trend === 'falling' ? 'falling' : 'stable';
     const badge = `<span class="status-badge badge-${data.status}">${data.status}</span>`;
 
-    // Show mode badges for dual-mode rivers
     const modeIcons = river.fishingModes && river.fishingModes.length > 1
       ? `<span style="font-size:11px;color:#94a3b8;">${river.fishingModes.map(m => m === 'wade' ? '🥾' : m === 'drift' ? '🚣' : '⛵').join('')}</span>`
       : '';
 
+    const isFav = favs.includes(id);
+    const distStr = data.distance !== null ? `<div class="card-distance">📍 ${Math.round(data.distance)} mi</div>` : '';
+
+    let weatherIcon = '';
+    if (data.weather) {
+      if (data.weather.wind_mph > 15) weatherIcon += ' 💨';
+      if (data.weather.precip_pct > 30) weatherIcon += ' 🌧️';
+    }
+
     return `
       <div class="river-card status-${data.status}${sel}" onclick="selectRiver('${id}')">
+        <button class="card-favorite${isFav ? ' active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${id}')" title="Add to My Spots">${isFav ? '★' : '☆'}</button>
         <div class="card-top">
           <div class="card-info">
             <div class="card-name">
               <span class="status-dot ${data.status}"></span>
-              ${river.name} ${modeIcons}
+              ${river.name} ${modeIcons}${weatherIcon}
             </div>
             <div class="card-stats">
               ${cfs}
               <span class="trend-arrow ${trendClass}">${trendSymbol}</span>
               ${temp}
             </div>
+            ${distStr}
           </div>
           ${badge}
         </div>
@@ -902,7 +1416,6 @@ async function showDetail(id) {
   const river = RIVERS[id];
   const data = riverData[id] || {};
 
-  // Build detail object from embedded config
   const detail = {
     thresholds: river.thresholds,
     notes: river.notes || '',
@@ -912,7 +1425,6 @@ async function showDetail(id) {
     trendContext: data.trendContext || '',
   };
 
-  // Build mode statuses for dual-mode rivers
   if (river.fishingModes && river.fishingModes.length > 1) {
     detail.modeStatuses = river.fishingModes.map(mode => {
       const t = mode === 'wade' ? river.wadeThresholds : mode === 'drift' ? river.driftThresholds : river.thresholds;
@@ -923,6 +1435,14 @@ async function showDetail(id) {
   }
 
   renderDetailPanel(id, river, data, detail);
+
+  // Update favorite button
+  const favBtn = document.getElementById('detail-favorite-btn');
+  const favs = getFavorites();
+  if (favBtn) {
+    favBtn.classList.toggle('active', favs.includes(id));
+    favBtn.textContent = favs.includes(id) ? '★' : '☆';
+  }
 }
 
 function renderDetailPanel(id, river, data, detail) {
@@ -934,7 +1454,6 @@ function renderDetailPanel(id, river, data, detail) {
   const reason = data.reason || 'No data';
   const trendContext = detail?.trendContext || data.trendContext || '';
 
-  // Thresholds from detail response (camelCase)
   const thresholds = detail?.thresholds || null;
   const greenFloor = thresholds?.greenFloor;
   const greenCeiling = thresholds?.greenCeiling;
@@ -979,7 +1498,7 @@ function renderDetailPanel(id, river, data, detail) {
     `;
   }
 
-  // Temperature display
+  // Temperature
   let tempHtml = '—';
   let tempContext = '';
   if (tempF !== null && tempF !== undefined) {
@@ -999,11 +1518,11 @@ function renderDetailPanel(id, river, data, detail) {
     changeHtml = `<span style="font-size:11px;color:${changeColor};">${sign}${Math.round(cfsChange).toLocaleString()} / 6hr</span>`;
   }
 
-  // Optimal range for stat box
+  // Optimal range
   let rangeDisplay = '—';
   if (greenFloor && greenCeiling) rangeDisplay = `${greenFloor.toLocaleString()}–${greenCeiling.toLocaleString()}`;
 
-  // Mode statuses for dual-mode rivers (wade + drift)
+  // Mode statuses
   let modeHtml = '';
   if (modeStatuses && modeStatuses.length > 1) {
     const modeRows = modeStatuses.map(ms => {
@@ -1028,14 +1547,78 @@ function renderDetailPanel(id, river, data, detail) {
     `;
   }
 
-  // Trend context callout
+  // Trend
   const trendHtml = trendContext ? `
     <div class="trend-box">
       <strong>Trend:</strong> ${trendContext}
     </div>
   ` : '';
 
-  // Notes about the fishery
+  // Weather
+  let weatherHtml = '';
+  if (data.weather) {
+    const w = data.weather;
+    const precColor = w.precip_pct > 30 ? '#ea580c' : w.precip_pct > 10 ? '#f97316' : '#64748b';
+    const windColor = w.wind_mph > 15 ? '#dc2626' : '#64748b';
+
+    const windLabels = {
+      N: 'N', NNE: 'NNE', NE: 'NE', ENE: 'ENE', E: 'E', ESE: 'ESE', SE: 'SE', SSE: 'SSE',
+      S: 'S', SSW: 'SSW', SW: 'SW', WSW: 'WSW', W: 'W', WNW: 'WNW', NW: 'NW', NNW: 'NNW'
+    };
+    const windDir = windLabels[w.wind_dir] || w.wind_dir || '—';
+
+    weatherHtml = `
+      <div class="weather-section">
+        <div class="weather-title">Current Weather</div>
+        <div class="weather-grid">
+          <div class="weather-item">
+            <div class="weather-label">Air Temp</div>
+            <div class="weather-value">${w.temp_f}°F</div>
+          </div>
+          <div class="weather-item">
+            <div class="weather-label">Wind</div>
+            <div class="weather-value" style="color:${windColor};">${w.wind_mph} mph ${windDir}</div>
+          </div>
+          <div class="weather-item">
+            <div class="weather-label">Precipitation Chance</div>
+            <div class="weather-value" style="color:${precColor};">${w.precip_pct}%</div>
+          </div>
+          <div class="weather-forecast">
+            <div class="weather-forecast-label">Forecast</div>
+            <div class="weather-forecast-text">${w.short_forecast}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Hatch
+  let hatchHtml = '';
+  const month = new Date().getMonth() + 1;
+  let hatchKey = id;
+  let hatchEntry = HATCH_DATA[hatchKey]?.[month];
+
+  if (!hatchEntry) {
+    // Try prefix matching
+    const prefix = id.split('_')[0];
+    for (const [key, data] of Object.entries(HATCH_DATA)) {
+      if (key.startsWith(prefix)) {
+        hatchEntry = data[month];
+        break;
+      }
+    }
+  }
+
+  if (hatchEntry) {
+    hatchHtml = `
+      <div class="hatch-section">
+        <div class="hatch-title">What's Hatching</div>
+        <div class="hatch-text">${hatchEntry}</div>
+      </div>
+    `;
+  }
+
+  // Notes
   const notesHtml = notes ? `
     <div class="detail-notes">
       <div class="detail-notes-title">About This Fishery</div>
@@ -1043,12 +1626,11 @@ function renderDetailPanel(id, river, data, detail) {
     </div>
   ` : '';
 
-  // River type label
   const typeLabel = river.riverType
     ? river.riverType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     : '';
 
-  // Blown out / danger warnings
+  // Warnings
   const warningParts = [];
   if (blownOutCfs) warningParts.push(`Blown out &gt; ${blownOutCfs.toLocaleString()} cfs`);
   if (dangerousWadeCfs) warningParts.push(`Dangerous wading &gt; ${dangerousWadeCfs.toLocaleString()} cfs`);
@@ -1093,6 +1675,8 @@ function renderDetailPanel(id, river, data, detail) {
     </div>
     ${barHtml}
     ${modeHtml}
+    ${weatherHtml}
+    ${hatchHtml}
     ${notesHtml}
     <div class="detail-gauge">
       ${gaugeInfo ? `<span>${gaugeInfo}</span>` : ''}
@@ -1112,11 +1696,53 @@ function closeDetail() {
 }
 
 // ============================
+// MOBILE RESPONSIVE
+// ============================
+function setViewMode(mode) {
+  viewMode = mode;
+  const sidebar = document.getElementById('sidebar');
+  const mapContainer = document.getElementById('map-container');
+
+  if (mode === 'list') {
+    sidebar.classList.add('visible');
+    mapContainer.classList.remove('visible');
+    document.getElementById('nav-list').classList.add('active');
+    document.getElementById('nav-map').classList.remove('active');
+  } else {
+    sidebar.classList.remove('visible');
+    mapContainer.classList.add('visible');
+    document.getElementById('nav-list').classList.remove('active');
+    document.getElementById('nav-map').classList.add('active');
+  }
+}
+
+// ============================
+// GEOLOCATION
+// ============================
+function setupGeolocation() {
+  const geoBtn = document.getElementById('geolocation-btn');
+  geoBtn.addEventListener('click', () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        document.getElementById('distance-filter').style.display = 'block';
+        fetchAllData();
+      }, (err) => {
+        console.warn('Geolocation error:', err);
+        alert('Could not get your location. Please enable location services.');
+      });
+    } else {
+      alert('Geolocation not supported in your browser');
+    }
+  });
+}
+
+// ============================
 // INIT
 // ============================
 initMap();
+setupGeolocation();
 fetchAllData();
-// Auto-refresh every 15 minutes
 setInterval(fetchAllData, 15 * 60 * 1000);
 </script>
 </body>
