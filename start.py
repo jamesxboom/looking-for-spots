@@ -32,6 +32,7 @@ from html.parser import HTMLParser
 
 PORT = int(os.environ.get("PORT", 5555))
 DIR = Path(__file__).parent
+_subscribers_file = DIR / "subscribers.json"
 
 # ── Shared data store (written by background thread, read by HTTP handler) ──
 _flow_data = {}          # { usgs_site_id: { cfs, tempF, source, updatedAt } }
@@ -359,12 +360,7 @@ REPORT_FEEDS = [
         "type": "atom",
         "base_url": "https://renoflyshop.com",
     },
-    {
-        "name": "The Fly Shop",
-        "url": "https://www.theflyshop.com/feed",
-        "type": "rss",
-        "base_url": "https://www.theflyshop.com",
-    },
+    # The Fly Shop stream reports are scraped separately (not via RSS — their /feed is a blog, not stream reports)
 ]
 
 # River names to match in report titles/content (lowercase)
@@ -523,13 +519,71 @@ def _parse_rss_feed(xml_text, source_name, base_url):
     return entries
 
 
+def _scrape_fly_shop_stream_reports():
+    """
+    Scrape The Fly Shop's stream report page for individual river reports.
+    Returns list of report dicts matching the standard format.
+    """
+    url = "https://www.theflyshop.com/streamreport.html"
+    entries = []
+    try:
+        req = Request(url, headers={"User-Agent": "LookingForSpots/1.0"})
+        resp = urlopen(req, timeout=20)
+        html = resp.read().decode("utf-8", errors="replace")
+
+        # Parse each river report tab pane
+        # Pattern: <h4>River Name - Updated: Date</h4> ... <div class="report">...</div>
+        report_pattern = re.compile(
+            r'<h4>\s*([^<]+?)\s*-\s*Updated:\s*&nbsp;([^<]+?)\s*</h4>'
+            r'.*?<div class="report">(.*?)</div>',
+            re.DOTALL
+        )
+
+        for match in report_pattern.finditer(html):
+            river_name = match.group(1).strip()
+            date_str = match.group(2).strip()
+            raw_content = match.group(3).strip()
+
+            # Parse date (e.g., "April 7, 2026" → "2026-04-07")
+            parsed_date = ""
+            try:
+                dt = datetime.strptime(date_str, "%B %d, %Y")
+                parsed_date = dt.strftime("%Y-%m-%d")
+            except ValueError:
+                parsed_date = date_str
+
+            snippet = strip_html(raw_content)[:400]
+            if len(strip_html(raw_content)) > 400:
+                snippet += "..."
+
+            full_text = f"{river_name} {raw_content}"
+            rivers = _match_rivers(full_text)
+
+            entries.append({
+                "title": f"{river_name} Stream Report",
+                "date": parsed_date,
+                "snippet": snippet,
+                "source": "The Fly Shop",
+                "url": f"{url}",
+                "rivers_mentioned": rivers,
+            })
+
+        print(f"  [reports] The Fly Shop (scrape): {len(entries)} stream reports found")
+    except Exception as e:
+        print(f"  [reports] Error scraping The Fly Shop stream reports: {e}")
+        traceback.print_exc()
+
+    return entries
+
+
 def fetch_fishing_reports():
     """
-    Fetch fishing reports from all configured RSS/Atom feeds.
-    Returns list of report dicts sorted by date (newest first), limited to 30.
+    Fetch fishing reports from all configured RSS/Atom feeds + The Fly Shop scrape.
+    Returns list of report dicts sorted by date (newest first), limited to 50.
     """
     all_reports = []
 
+    # RSS/Atom feeds (Trout Creek, Reno Fly Shop)
     for feed in REPORT_FEEDS:
         try:
             req = Request(feed["url"], headers={
@@ -550,9 +604,16 @@ def fetch_fishing_reports():
         except Exception as e:
             print(f"  [reports] Error fetching {feed['name']}: {e}")
 
-    # Sort by date descending, take latest 30
+    # The Fly Shop stream reports (scraped from HTML page)
+    try:
+        tfs_reports = _scrape_fly_shop_stream_reports()
+        all_reports.extend(tfs_reports)
+    except Exception as e:
+        print(f"  [reports] Error with The Fly Shop scrape: {e}")
+
+    # Sort by date descending, take latest 50
     all_reports.sort(key=lambda r: r.get("date", ""), reverse=True)
-    return all_reports[:30]
+    return all_reports[:50]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -760,6 +821,83 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         # ── static files ──
         return super().do_GET()
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+
+        # ── /api/subscribe → email subscription ──
+        if parsed.path == "/api/subscribe":
+            return self._handle_subscribe()
+
+        # ── default: 404 ──
+        self.send_error(404)
+
+    def do_OPTIONS(self):
+        """Handle CORS preflight requests."""
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def _handle_subscribe(self):
+        """Handle POST /api/subscribe with email address."""
+        try:
+            # Read content length and parse JSON body
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+            data = json.loads(body.decode("utf-8"))
+            email = data.get("email", "").strip()
+
+            # Validate email has @ sign
+            if not email or "@" not in email:
+                return self._json_response(
+                    {"ok": False, "message": "Invalid email address"},
+                    status=400
+                )
+
+            # Load existing subscribers
+            subscribers = []
+            if _subscribers_file.exists():
+                try:
+                    with open(_subscribers_file, "r") as f:
+                        subscribers = json.load(f)
+                except (json.JSONDecodeError, IOError):
+                    subscribers = []
+
+            # Check for duplicates
+            for sub in subscribers:
+                if sub.get("email") == email:
+                    return self._json_response(
+                        {"ok": False, "message": "Already subscribed"},
+                        status=409
+                    )
+
+            # Add new subscriber with timestamp
+            subscribers.append({
+                "email": email,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+
+            # Save to file
+            with open(_subscribers_file, "w") as f:
+                json.dump(subscribers, f, indent=2)
+
+            return self._json_response(
+                {"ok": True, "message": "Subscribed!"},
+                status=200
+            )
+
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            return self._json_response(
+                {"ok": False, "message": "Invalid request"},
+                status=400
+            )
+        except Exception as e:
+            return self._json_response(
+                {"ok": False, "message": "Server error"},
+                status=500
+            )
 
     def _serve_flows(self):
         with _data_lock:

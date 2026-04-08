@@ -4,6 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Looking For Spots — California Fly Fishing Conditions</title>
+
+<!-- Open Graph -->
+<meta property="og:title" content="Looking For Spots — NorCal Fly Fishing Conditions">
+<meta property="og:description" content="Real-time fly fishing conditions for 62 Northern California spots. Traffic-light system tells you where to fish today.">
+<meta property="og:url" content="https://looking-for-spots.onrender.com">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://looking-for-spots.onrender.com/og-preview.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Looking For Spots — NorCal Fly Fishing Conditions">
+<meta name="twitter:description" content="Real-time fly fishing conditions for 62 NorCal spots. Green, yellow, or red — know where to fish today.">
+<meta name="twitter:image" content="https://looking-for-spots.onrender.com/og-preview.png">
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<!-- Analytics (Plausible — privacy-friendly, no cookies) -->
+<script defer data-domain="looking-for-spots.onrender.com" src="https://plausible.io/js/script.js"></script>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -139,6 +163,28 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 
 .detail-gauge { font-size: 12px; color: #94a3b8; padding-top: 12px; border-top: 1px solid #e2e8f0; }
 .detail-disclaimer { font-size: 11px; color: #94a3b8; margin-top: 8px; font-style: italic; }
+
+/* Share Button */
+.share-btn { background: #0ea5e9; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
+.share-btn:hover { background: #0284c7; }
+.share-btn.copied { background: #16a34a; }
+.share-btn-mini { background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 14px; padding: 2px 4px; border-radius: 4px; }
+.share-btn-mini:hover { color: #0ea5e9; background: #f1f5f9; }
+
+/* Email Signup */
+.email-signup { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 12px; padding: 20px; margin: 16px 0; text-align: center; }
+.email-signup h3 { color: #f8fafc; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.email-signup p { color: #94a3b8; font-size: 12px; margin-bottom: 12px; line-height: 1.4; }
+.email-signup-form { display: flex; gap: 8px; max-width: 360px; margin: 0 auto; }
+.email-signup-form input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #f8fafc; font-size: 13px; font-family: inherit; }
+.email-signup-form input::placeholder { color: #64748b; }
+.email-signup-form input:focus { outline: none; border-color: #0ea5e9; }
+.email-signup-form button { background: #0ea5e9; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.email-signup-form button:hover { background: #0284c7; }
+.email-signup-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.email-signup-msg { font-size: 12px; margin-top: 8px; }
+.email-signup-msg.success { color: #4ade80; }
+.email-signup-msg.error { color: #f87171; }
 
 .trend-box { background: #f1f5f9; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: #475569; }
 .trend-box strong { color: #1e293b; }
@@ -355,10 +401,10 @@ const RIVERS = {
   },
   mccloud: {
     name: "McCloud River", riverType: "spring_fed", lat: 41.0700, lng: -122.1100,
-    usgs: "11367500", fishingModes: ["wade"],
-    thresholds: { greenFloor:800, greenCeiling:1200, yellowFloor:600, yellowCeiling:1500, rapidChange:200 },
-    dangerousWadeCfs: 900,
-    notes: "Optimal 800–1,200 cfs. Wadeable below ~900. Spring-fed, relatively stable."
+    usgs: "11367500", cdecStation: "MSS", fishingModes: ["wade"],
+    thresholds: { greenFloor:350, greenCeiling:600, yellowFloor:250, yellowCeiling:800, rapidChange:100 },
+    dangerousWadeCfs: 700,
+    notes: "Optimal 350–600 cfs at MSS gauge (above Shasta). Spring-fed, relatively stable. Wadeable below ~700."
   },
   hat_creek: {
     name: "Hat Creek", riverType: "spring_creek", lat: 40.6891, lng: -121.4228,
@@ -1199,6 +1245,52 @@ const HATCH_DATA = {
 // ============================
 // TRAFFIC LIGHT LOGIC
 // ============================
+// ── Share functionality ──
+async function shareSpot(riverId) {
+  const river = RIVERS[riverId];
+  const data = riverData[riverId];
+  if (!river || !data) return;
+
+  const statusLabel = data.status.toUpperCase();
+  const cfsStr = data.cfs !== null ? `${Math.round(data.cfs).toLocaleString()} cfs` : 'no data';
+  const text = `${river.name} is ${statusLabel} (${cfsStr}) right now!`;
+  const url = 'https://looking-for-spots.onrender.com';
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'Looking For Spots', text, url });
+      return;
+    } catch (e) { /* user cancelled or not supported */ }
+  }
+  // Fallback: copy to clipboard
+  try {
+    await navigator.clipboard.writeText(`${text} Check conditions: ${url}`);
+    const btn = document.querySelector(`[data-share="${riverId}"]`);
+    if (btn) { btn.classList.add('copied'); btn.textContent = 'Copied!'; setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '&#x1f517; Share'; }, 2000); }
+  } catch (e) {
+    console.warn('Copy failed:', e);
+  }
+}
+
+// ── Email signup ──
+async function handleSubscribe(event) {
+  event.preventDefault();
+  const form = event.target;
+  const input = form.querySelector('input[type="email"]');
+  const btn = form.querySelector('button');
+  const msg = document.getElementById('signup-msg');
+  const email = input.value.trim();
+  if (!email) return;
+  btn.disabled = true; btn.textContent = 'Subscribing...';
+  try {
+    const resp = await fetch('/api/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const data = await resp.json();
+    if (resp.ok) { msg.textContent = 'You\'re in! Watch for the Green Light Report.'; msg.className = 'email-signup-msg success'; input.value = ''; }
+    else { msg.textContent = data.message || 'Something went wrong.'; msg.className = 'email-signup-msg error'; }
+  } catch (e) { msg.textContent = 'Could not connect. Try again later.'; msg.className = 'email-signup-msg error'; }
+  btn.disabled = false; btn.textContent = 'Subscribe';
+}
+
 function calculateStatus(cfs, tempF, thresholds) {
   if (cfs === null || cfs === undefined) return { status: 'red', reason: 'No flow data available' };
 
@@ -1343,6 +1435,7 @@ async function fetchAllData() {
   let dfData = {};
   let trendData = {};
   let weatherData = {};
+  let cdecData = {};
 
   try {
     const apiResp = await fetchJSON('/api/flows');
@@ -1351,6 +1444,7 @@ async function fetchAllData() {
       dfData = apiResp.dreamflows || {};
       trendData = apiResp.trends || {};
       weatherData = apiResp.weather || {};
+      cdecData = apiResp.cdec || {};
       console.log(`[api] Server data loaded`);
     }
   } catch (apiErr) {
@@ -1392,6 +1486,11 @@ async function fetchAllData() {
     if (!d && river.dfSite && dfData[river.dfSite]) {
       d = dfData[river.dfSite];
       source = 'dreamflows';
+    }
+    // CDEC fallback — if USGS and DreamFlows both miss, try CDEC
+    if (!d && river.cdecStation && cdecData[river.cdecStation]) {
+      d = cdecData[river.cdecStation];
+      source = 'cdec';
     }
     const cfs = d?.cfs ?? null;
     const tempF = d?.tempF ?? null;
@@ -1642,7 +1741,7 @@ async function showDetail(id) {
   const detail = {
     thresholds: river.thresholds,
     notes: river.notes || '',
-    gaugeInfo: river.usgs ? `USGS ${river.usgs}` : '',
+    gaugeInfo: river.usgs ? `USGS  ${river.usgs}` : (river.cdecStation ? `CDEC ${river.cdecStation}` : ''),
     blownOutCfs: river.blownOutCfs || null,
     dangerousWadeCfs: river.dangerousWadeCfs || null,
     trendContext: data.trendContext || '',
@@ -1875,7 +1974,7 @@ function renderDetailPanel(id, river, data, detail) {
   ` : '';
 
   body.innerHTML = `
-    <div class="detail-name">${river.name}</div>
+    <div class="detail-name">${river.name} <button class="share-btn" data-share="${id}" onclick="shareSpot('${id}')">&#x1f517; Share</button></div>
     <div class="detail-type">${gaugeInfo || typeLabel}</div>
     <div class="detail-status-bar ${status}">
       <div class="detail-status-text ${status}">${statusLabels[status] || status.toUpperCase()}</div>
@@ -1915,6 +2014,15 @@ function renderDetailPanel(id, river, data, detail) {
     ${notesHtml}
     <div class="detail-gauge">
       ${gaugeInfo ? `<span>${gaugeInfo}</span>` : ''}
+    </div>
+    <div class="email-signup">
+      <h3>Get the Weekly Green Light Report</h3>
+      <p>Every Monday — which spots went green, what's hatching, and where to fish.</p>
+      <form class="email-signup-form" onsubmit="handleSubscribe(event)">
+        <input type="email" placeholder="your@email.com" required>
+        <button type="submit">Subscribe</button>
+      </form>
+      <div id="signup-msg" class="email-signup-msg"></div>
     </div>
     <div class="detail-disclaimer">Data from USGS &amp; CDEC. Provisional and subject to revision. Not for safety decisions.</div>
   `;
@@ -2128,5 +2236,6 @@ if (window.innerWidth <= 900) {
 fetchAllData();
 setInterval(fetchAllData, 15 * 60 * 1000);
 </script>
+<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW:', err)); }</script>
 </body>
 </html>
