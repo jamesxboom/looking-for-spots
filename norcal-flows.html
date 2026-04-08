@@ -7,7 +7,7 @@
 
 <!-- Open Graph -->
 <meta property="og:title" content="Looking For Spots — NorCal Fly Fishing Conditions">
-<meta property="og:description" content="Real-time fly fishing conditions for 62 Northern California spots. Traffic-light system tells you where to fish today.">
+<meta property="og:description" content="Real-time USGS &amp; CDEC gauge conditions for Northern California rivers. Traffic-light system for flow status.">
 <meta property="og:url" content="https://looking-for-spots.onrender.com">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://looking-for-spots.onrender.com/og-preview.png">
@@ -15,7 +15,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Looking For Spots — NorCal Fly Fishing Conditions">
-<meta name="twitter:description" content="Real-time fly fishing conditions for 62 NorCal spots. Green, yellow, or red — know where to fish today.">
+<meta name="twitter:description" content="Public gauge data + fly shop reports for NorCal rivers. Green, yellow, or red — know before you go.">
 <meta name="twitter:image" content="https://looking-for-spots.onrender.com/og-preview.png">
 
 <!-- PWA -->
@@ -89,10 +89,10 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .card-stats strong { color: #1e293b; font-weight: 600; }
 .status-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
 .badge-green { background: #f0fdf4; color: #15803d; }
-.badge-yellow { background: #fefce8; color: #a16207; }
+.badge-yellow { background: #fefce8; color: #92400e; }
 .badge-red { background: #fef2f2; color: #dc2626; }
 .card-reason { font-size: 12px; color: #64748b; margin-top: 6px; line-height: 1.4; }
-.card-distance { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+.card-distance { font-size: 11px; color: #64748b; margin-top: 4px; }
 .weather-icon { font-size: 14px; margin-left: 4px; }
 .trend-arrow { font-weight: 700; font-size: 13px; }
 .trend-arrow.rising { color: #ef4444; }
@@ -162,7 +162,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .detail-notes-text { font-size: 13px; color: #64748b; line-height: 1.5; }
 
 .detail-gauge { font-size: 12px; color: #94a3b8; padding-top: 12px; border-top: 1px solid #e2e8f0; }
-.detail-disclaimer { font-size: 11px; color: #94a3b8; margin-top: 8px; font-style: italic; }
+.detail-disclaimer { font-size: 11px; color: #64748b; margin-top: 8px; font-style: italic; }
 
 /* Share Button */
 .share-btn { background: #0ea5e9; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
@@ -177,7 +177,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .email-signup p { color: #94a3b8; font-size: 12px; margin-bottom: 12px; line-height: 1.4; }
 .email-signup-form { display: flex; gap: 8px; max-width: 360px; margin: 0 auto; }
 .email-signup-form input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #f8fafc; font-size: 13px; font-family: inherit; }
-.email-signup-form input::placeholder { color: #64748b; }
+.email-signup-form input::placeholder { color: #a1a1aa; }
 .email-signup-form input:focus { outline: none; border-color: #0ea5e9; }
 .email-signup-form button { background: #0ea5e9; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .email-signup-form button:hover { background: #0284c7; }
@@ -185,6 +185,22 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .email-signup-msg { font-size: 12px; margin-top: 8px; }
 .email-signup-msg.success { color: #4ade80; }
 .email-signup-msg.error { color: #f87171; }
+
+/* Suggestion Box */
+.suggest-box { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 16px 0; }
+.suggest-box h4 { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 4px; }
+.suggest-box p { font-size: 12px; color: #64748b; margin-bottom: 10px; }
+.suggest-box textarea { width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; font-family: inherit; resize: vertical; min-height: 60px; color: #1e293b; background: white; }
+.suggest-box textarea:focus { outline: none; border-color: #2563eb; }
+.suggest-box-row { display: flex; gap: 8px; margin-top: 8px; }
+.suggest-box-row input { flex: 1; padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; font-family: inherit; }
+.suggest-box-row input:focus { outline: none; border-color: #2563eb; }
+.suggest-box-row button { background: #2563eb; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.suggest-box-row button:hover { background: #1d4ed8; }
+.suggest-box-row button:disabled { opacity: 0.6; cursor: not-allowed; }
+.suggest-msg { font-size: 12px; margin-top: 6px; }
+.suggest-msg.success { color: #15803d; }
+.suggest-msg.error { color: #dc2626; }
 
 .trend-box { background: #f1f5f9; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: #475569; }
 .trend-box strong { color: #1e293b; }
@@ -223,7 +239,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .report-river-tag { font-size: 10px; background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 10px; }
 
 /* Footer */
-.footer { background: white; border-top: 1px solid #e2e8f0; padding: 8px 20px; font-size: 11px; color: #94a3b8; text-align: center; flex-shrink: 0; }
+.footer { background: white; border-top: 1px solid #e2e8f0; padding: 8px 20px; font-size: 11px; color: #64748b; text-align: center; flex-shrink: 0; }
 
 /* Loading */
 .loading-overlay { position: absolute; inset: 0; background: rgba(248,250,252,0.9); display: flex; align-items: center; justify-content: center; z-index: 500; }
@@ -251,6 +267,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .river-card:focus-visible, .nav-btn:focus-visible, .refresh-btn:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .card-favorite, .detail-favorite { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
 
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 /* Responsive */
 @media (max-width: 900px) {
   .main { position: relative; }
@@ -290,9 +307,10 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
       <span id="update-time"></span>
       <div class="header-controls">
         <button class="header-btn" id="view-toggle" style="display:none;">List</button>
-        <button class="header-btn" id="reports-btn" title="Fishing reports from local shops" onclick="openReportsModal()">Shop Reports</button>
+        <a href="/about" class="header-btn" style="text-decoration:none;">About</a>
+        <button class="header-btn" id="reports-btn" title="Fishing reports from local shops" onclick="openReportsModal()">Fly Shop Reports</button>
         <button class="header-btn" id="geolocation-btn" title="Find nearby spots">📍 Near Me</button>
-        <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Refresh</button>
+        <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Check Now</button>
       </div>
     </div>
   </header>
@@ -322,7 +340,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
     <div class="map-container" id="map-container">
       <div id="map"></div>
       <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-spinner">Loading river conditions...</div>
+        <div class="loading-spinner">Checking conditions...</div>
       </div>
     </div>
     <div class="detail-panel" id="detail-panel">
@@ -340,7 +358,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
     <button class="nav-btn" id="nav-spots" onclick="setViewMode('list');toggleFavoritesFilter();" title="My Spots">⭐</button>
   </nav>
   <footer class="footer">
-    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a> &middot; Provisional, not verified &middot; Not for safety decisions &middot; Auto-refreshes every 15 min
+    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a>, <a href="https://cdec.water.ca.gov" target="_blank" style="color:#64748b;">CDEC</a> &amp; <a href="https://dreamflows.com" target="_blank" style="color:#64748b;">DreamFlows</a> &middot; Shop reports from <a href="https://www.troutcreekoutfitters.com" target="_blank" style="color:#64748b;">Trout Creek</a>, <a href="https://renoflyshop.com" target="_blank" style="color:#64748b;">Reno Fly Shop</a> &amp; <a href="https://www.theflyshop.com" target="_blank" style="color:#64748b;">The Fly Shop</a> &middot; Provisional — not for safety decisions
   </footer>
 </div>
 
@@ -1253,7 +1271,7 @@ async function shareSpot(riverId) {
 
   const statusLabel = data.status.toUpperCase();
   const cfsStr = data.cfs !== null ? `${Math.round(data.cfs).toLocaleString()} cfs` : 'no data';
-  const text = `${river.name} is ${statusLabel} (${cfsStr}) right now!`;
+  const text = `Check conditions on ${river.name} — Looking For Spots`;
   const url = 'https://looking-for-spots.onrender.com';
 
   if (navigator.share) {
@@ -1264,9 +1282,9 @@ async function shareSpot(riverId) {
   }
   // Fallback: copy to clipboard
   try {
-    await navigator.clipboard.writeText(`${text} Check conditions: ${url}`);
+    await navigator.clipboard.writeText(`${text}\n${url}`);
     const btn = document.querySelector(`[data-share="${riverId}"]`);
-    if (btn) { btn.classList.add('copied'); btn.textContent = 'Copied!'; setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '&#x1f517; Share'; }, 2000); }
+    if (btn) { btn.classList.add('copied'); btn.textContent = 'Link copied'; setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = 'Share Spot'; }, 2000); }
   } catch (e) {
     console.warn('Copy failed:', e);
   }
@@ -1288,39 +1306,59 @@ async function handleSubscribe(event) {
     if (resp.ok) { msg.textContent = 'You\'re in! Watch for the Green Light Report.'; msg.className = 'email-signup-msg success'; input.value = ''; }
     else { msg.textContent = data.message || 'Something went wrong.'; msg.className = 'email-signup-msg error'; }
   } catch (e) { msg.textContent = 'Could not connect. Try again later.'; msg.className = 'email-signup-msg error'; }
-  btn.disabled = false; btn.textContent = 'Subscribe';
+  btn.disabled = false; btn.textContent = 'Get the Report';
+}
+
+// ── Feature suggestions ──
+async function handleSuggest(event) {
+  event.preventDefault();
+  const form = event.target;
+  const textarea = form.querySelector('textarea');
+  const emailInput = form.querySelector('input[type="email"]');
+  const btn = form.querySelector('button');
+  const msg = document.getElementById('suggest-msg');
+  const suggestion = textarea.value.trim();
+  if (!suggestion) return;
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    const resp = await fetch('/api/suggest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ suggestion, email: emailInput ? emailInput.value.trim() : '' }) });
+    const data = await resp.json();
+    if (resp.ok) { msg.textContent = 'Thanks — suggestion received!'; msg.className = 'suggest-msg success'; textarea.value = ''; }
+    else { msg.textContent = data.message || 'Could not send.'; msg.className = 'suggest-msg error'; }
+  } catch (e) { msg.textContent = 'Could not connect. Try again later.'; msg.className = 'suggest-msg error'; }
+  btn.disabled = false; btn.textContent = 'Send';
 }
 
 function calculateStatus(cfs, tempF, thresholds) {
-  if (cfs === null || cfs === undefined) return { status: 'red', reason: 'No flow data available' };
+  if (cfs === null || cfs === undefined) return { status: 'red', reason: 'No current readings — check back soon' };
 
   const { greenFloor, greenCeiling, yellowFloor, yellowCeiling } = thresholds;
   let status, reason;
 
   if (cfs >= greenFloor && cfs <= greenCeiling) {
     status = 'green';
-    reason = `Optimal range (${Math.round(cfs).toLocaleString()} cfs)`;
+    reason = `Conditions are ideal (${Math.round(cfs).toLocaleString()} cfs)`;
   } else if (cfs >= yellowFloor && cfs < greenFloor) {
     status = 'yellow';
-    reason = `Below optimal (${Math.round(cfs).toLocaleString()} cfs) — min optimal: ${greenFloor.toLocaleString()}`;
+    reason = `Flows are low (${Math.round(cfs).toLocaleString()} cfs) — optimal starts at ${greenFloor.toLocaleString()}`;
   } else if (cfs > greenCeiling && cfs <= yellowCeiling) {
     status = 'yellow';
-    reason = `Above optimal (${Math.round(cfs).toLocaleString()} cfs) — max optimal: ${greenCeiling.toLocaleString()}`;
+    reason = `Flows are high (${Math.round(cfs).toLocaleString()} cfs) — optimal up to ${greenCeiling.toLocaleString()}`;
   } else if (cfs < yellowFloor) {
     status = 'red';
-    reason = `Too low (${Math.round(cfs).toLocaleString()} cfs) — min fishable: ${yellowFloor.toLocaleString()}`;
+    reason = `Too low to fish (${Math.round(cfs).toLocaleString()} cfs) — min fishable: ${yellowFloor.toLocaleString()}`;
   } else {
     status = 'red';
-    reason = `Too high (${Math.round(cfs).toLocaleString()} cfs) — max fishable: ${yellowCeiling.toLocaleString()}`;
+    reason = `Too high — stay safe (${Math.round(cfs).toLocaleString()} cfs)`;
   }
 
   if (tempF !== null && tempF !== undefined) {
     if (tempF > 68) {
       status = 'red';
-      reason = `Water too warm (${tempF.toFixed(1)}°F) — do not fish`;
+      reason = `Water too warm (${tempF.toFixed(1)}°F) — protect the fish, stay home`;
     } else if (tempF > 65 && status === 'green') {
       status = 'yellow';
-      reason += ` · Water warming (${tempF.toFixed(1)}°F) — fish early`;
+      reason += ` · Getting warm (${tempF.toFixed(1)}°F) — fish early morning`;
     }
   }
 
@@ -1408,7 +1446,7 @@ function getBestBet() {
 async function fetchAllData() {
   const btn = document.getElementById('refresh-btn');
   btn.disabled = true;
-  btn.textContent = 'Loading...';
+  btn.textContent = 'Checking...';
   document.getElementById('loading-overlay').style.display = 'flex';
 
   if (Object.keys(markers).length === 0) {
@@ -1533,7 +1571,7 @@ async function fetchAllData() {
 
   document.getElementById('loading-overlay').style.display = 'none';
   btn.disabled = false;
-  btn.textContent = 'Refresh';
+  btn.textContent = 'Check Now';
 
   renderSidebar();
   updateMarkers();
@@ -1661,6 +1699,12 @@ function renderSidebar() {
 
   // River cards
   const favs = getFavorites();
+
+  if (entries.length === 0 && favoritesFilter) {
+    list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#64748b;"><div style="font-size:24px;margin-bottom:8px;">☆</div><div style="font-size:13px;">No saved spots yet. Tap the star on any river to add it here.</div></div>';
+    return;
+  }
+
   list.innerHTML = entries.map(({ id, river, data }) => {
     const sel = id === selectedRiverId ? ' selected' : '';
     const cfs = data.cfs !== null && data.cfs !== undefined
@@ -1671,7 +1715,8 @@ function renderSidebar() {
     const trend = data.trend || 'stable';
     const trendSymbol = trend === 'rising' ? '↑' : trend === 'falling' ? '↓' : '→';
     const trendClass = trend === 'rising' ? 'rising' : trend === 'falling' ? 'falling' : 'stable';
-    const badge = `<span class="status-badge badge-${data.status}">${data.status}</span>`;
+    const badgeLabels = { green: 'Go Fish', yellow: 'Caution', red: 'Not Today' };
+    const badge = `<span class="status-badge badge-${data.status}">${badgeLabels[data.status] || data.status}</span>`;
 
     const modeIcons = river.fishingModes && river.fishingModes.length > 1
       ? `<span style="font-size:11px;color:#94a3b8;">${river.fishingModes.map(m => m === 'wade' ? '🥾' : m === 'drift' ? '🚣' : '⛵').join('')}</span>`
@@ -1687,12 +1732,12 @@ function renderSidebar() {
     }
 
     return `
-      <div class="river-card status-${data.status}${sel}" onclick="selectRiver('${id}')" tabindex="0" role="button" aria-label="${river.name} - ${data.status}">
+      <div class="river-card status-${data.status}${sel}" onclick="selectRiver('${id}')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectRiver('${id}');}" aria-label="${river.name} - ${data.status}">
         <button class="card-favorite${isFav ? ' active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${id}')" title="Add to My Spots">${isFav ? '★' : '☆'}</button>
         <div class="card-top">
           <div class="card-info">
             <div class="card-name">
-              <span class="status-dot ${data.status}"></span>
+              <span class="status-dot ${data.status}" aria-label="Status: ${data.status}" role="img"></span>
               ${river.name} ${modeIcons}${weatherIcon}
             </div>
             <div class="card-stats">
@@ -1708,6 +1753,11 @@ function renderSidebar() {
       </div>
     `;
   }).join('');
+
+  // Update river-count when filters are active
+  if (favoritesFilter || (document.getElementById('distance-filter').value !== 'any')) {
+    document.getElementById('river-count').textContent = `${entries.length} river${entries.length !== 1 ? 's' : ''} shown`;
+  }
 }
 
 // ============================
@@ -1790,7 +1840,7 @@ function renderDetailPanel(id, river, data, detail) {
   const blownOutCfs = detail?.blownOutCfs;
   const dangerousWadeCfs = detail?.dangerousWadeCfs;
 
-  const statusLabels = { green: 'Go Fish', yellow: 'Fishable With Caveats', red: "Don't Go" };
+  const statusLabels = { green: 'Go Fish', yellow: 'Fish With Caution', red: 'Not Today' };
 
   // Flow range bar
   let barHtml = '';
@@ -1974,7 +2024,7 @@ function renderDetailPanel(id, river, data, detail) {
   ` : '';
 
   body.innerHTML = `
-    <div class="detail-name">${river.name} <button class="share-btn" data-share="${id}" onclick="shareSpot('${id}')">&#x1f517; Share</button></div>
+    <div class="detail-name">${river.name} <button class="share-btn" data-share="${id}" onclick="shareSpot('${id}')">Share Spot</button></div>
     <div class="detail-type">${gaugeInfo || typeLabel}</div>
     <div class="detail-status-bar ${status}">
       <div class="detail-status-text ${status}">${statusLabels[status] || status.toUpperCase()}</div>
@@ -2019,10 +2069,22 @@ function renderDetailPanel(id, river, data, detail) {
       <h3>Get the Weekly Green Light Report</h3>
       <p>Every Monday — which spots went green, what's hatching, and where to fish.</p>
       <form class="email-signup-form" onsubmit="handleSubscribe(event)">
-        <input type="email" placeholder="your@email.com" required>
-        <button type="submit">Subscribe</button>
+        <label for="signup-email" class="sr-only">Email address</label><input id="signup-email" type="email" placeholder="your@email.com" required>
+        <button type="submit">Get the Report</button>
       </form>
       <div id="signup-msg" class="email-signup-msg"></div>
+    </div>
+    <div class="suggest-box">
+      <h4>What should we build next?</h4>
+      <p>Missing a river? Want a feature? Tell us.</p>
+      <form onsubmit="handleSuggest(event)">
+        <textarea placeholder="e.g. Add the Feather River, show moon phase, text alerts when a spot goes green..." maxlength="1000"></textarea>
+        <div class="suggest-box-row">
+          <input type="email" placeholder="Email (optional — if you want a reply)">
+          <button type="submit">Send</button>
+        </div>
+      </form>
+      <div id="suggest-msg" class="suggest-msg"></div>
     </div>
     <div class="detail-disclaimer">Data from USGS &amp; CDEC. Provisional and subject to revision. Not for safety decisions.</div>
   `;
@@ -2184,9 +2246,10 @@ function getReportsHtml(riverId) {
 
   return `
     <div class="reports-section">
-      <div class="reports-title">Shop Reports</div>
+      <div class="reports-title">Fly Shop Reports</div>
       ${cards}
       <span class="reports-all-link" onclick="openReportsModal()">View all reports →</span>
+      <div style="font-size:10px;color:#94a3b8;margin-top:8px;font-style:italic;">Reports from published shop updates. Support these shops — they keep our rivers healthy.</div>
     </div>
   `;
 }

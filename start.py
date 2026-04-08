@@ -33,6 +33,7 @@ from html.parser import HTMLParser
 PORT = int(os.environ.get("PORT", 5555))
 DIR = Path(__file__).parent
 _subscribers_file = DIR / "subscribers.json"
+_suggestions_file = DIR / "suggestions.json"
 
 # ── Shared data store (written by background thread, read by HTTP handler) ──
 _flow_data = {}          # { usgs_site_id: { cfs, tempF, source, updatedAt } }
@@ -795,6 +796,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.path = "/norcal-flows.html"
             return super().do_GET()
 
+        # ── /about → about page ──
+        if parsed.path == "/about":
+            self.path = "/about.html"
+            return super().do_GET()
+
         # ── /api/flows → JSON data ──
         if parsed.path == "/api/flows":
             return self._serve_flows()
@@ -828,6 +834,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         # ── /api/subscribe → email subscription ──
         if parsed.path == "/api/subscribe":
             return self._handle_subscribe()
+
+        # ── /api/suggest → feature suggestions ──
+        if parsed.path == "/api/suggest":
+            return self._handle_suggest()
 
         # ── default: 404 ──
         self.send_error(404)
@@ -894,6 +904,61 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 status=400
             )
         except Exception as e:
+            return self._json_response(
+                {"ok": False, "message": "Server error"},
+                status=500
+            )
+
+    def _handle_suggest(self):
+        """Handle POST /api/suggest with feature suggestion text."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+            data = json.loads(body.decode("utf-8"))
+            suggestion = data.get("suggestion", "").strip()
+            email = data.get("email", "").strip()
+
+            if not suggestion or len(suggestion) < 3:
+                return self._json_response(
+                    {"ok": False, "message": "Please write a suggestion"},
+                    status=400
+                )
+
+            if len(suggestion) > 1000:
+                return self._json_response(
+                    {"ok": False, "message": "Too long — keep it under 1000 characters"},
+                    status=400
+                )
+
+            # Load existing suggestions
+            suggestions = []
+            if _suggestions_file.exists():
+                try:
+                    with open(_suggestions_file, "r") as f:
+                        suggestions = json.load(f)
+                except (json.JSONDecodeError, IOError):
+                    suggestions = []
+
+            suggestions.append({
+                "suggestion": suggestion,
+                "email": email if email else None,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+
+            with open(_suggestions_file, "w") as f:
+                json.dump(suggestions, f, indent=2)
+
+            return self._json_response(
+                {"ok": True, "message": "Thanks — suggestion received!"},
+                status=200
+            )
+
+        except (json.JSONDecodeError, KeyError, ValueError):
+            return self._json_response(
+                {"ok": False, "message": "Invalid request"},
+                status=400
+            )
+        except Exception:
             return self._json_response(
                 {"ok": False, "message": "Server error"},
                 status=500
