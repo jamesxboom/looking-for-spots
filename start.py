@@ -361,6 +361,30 @@ REPORT_FEEDS = [
         "type": "atom",
         "base_url": "https://renoflyshop.com",
     },
+    {
+        "name": "Tahoe Fly Fishing",
+        "url": "https://tahoeflyfishing.com/report?format=rss",
+        "type": "rss",
+        "base_url": "https://tahoeflyfishing.com",
+    },
+    {
+        "name": "Ted Fay Fly Shop",
+        "url": "https://www.tedfay.com/guidenotes?format=rss",
+        "type": "rss",
+        "base_url": "https://www.tedfay.com",
+    },
+    {
+        "name": "Lost Coast Outfitters",
+        "url": "https://www.lostcoastoutfitters.com/blogs/fishing-report.atom",
+        "type": "atom",
+        "base_url": "https://www.lostcoastoutfitters.com",
+    },
+    {
+        "name": "CrossWaterCreek Outfitters",
+        "url": "https://crosswatercreek.com/blogs/news.atom",
+        "type": "atom",
+        "base_url": "https://crosswatercreek.com",
+    },
     # The Fly Shop stream reports are scraped separately (not via RSS — their /feed is a blog, not stream reports)
 ]
 
@@ -374,7 +398,8 @@ RIVER_KEYWORDS = [
     "donner", "prosser", "stampede", "boca", "independence", "truckee river",
     "carson river", "mammoth", "crowley", "bridgeport", "convict",
     "san joaquin", "mokelumne", "calaveras", "cosumnes", "deer creek",
-    "mill creek", "battle creek", "clear creek",
+    "mill creek", "battle creek", "clear creek", "dunsmuir", "siskiyou",
+    "berryessa", "pinecrest", "davis",
 ]
 
 
@@ -520,6 +545,53 @@ def _parse_rss_feed(xml_text, source_name, base_url):
     return entries
 
 
+def _scrape_sonora_fly_reports():
+    """
+    Scrape Sonora Fly Co's reports page for fishing conditions.
+    Returns list of report dicts matching the standard format.
+    """
+    url = "https://reports.sonorafly.com/"
+    entries = []
+    try:
+        req = Request(url, headers={"User-Agent": "LookingForSpots/1.0"})
+        resp = urlopen(req, timeout=20)
+        html = resp.read().decode("utf-8", errors="replace")
+
+        # Sonora uses individual location report pages linked from the main page
+        # Look for river/location names and their report links
+        link_pattern = re.compile(
+            r'<a[^>]+href="([^"]*)"[^>]*>\s*([^<]*(?:River|Creek|Lake|Fork|Stanislaus|Tuolumne|Mokelumne|Merced|Walker|Carson)[^<]*)\s*</a>',
+            re.IGNORECASE
+        )
+
+        for match in link_pattern.finditer(html):
+            link = match.group(1).strip()
+            river_name = match.group(2).strip()
+            if not link or not river_name:
+                continue
+            if not link.startswith("http"):
+                link = url.rstrip("/") + "/" + link.lstrip("/")
+
+            full_text = river_name
+            rivers = _match_rivers(full_text)
+
+            entries.append({
+                "title": f"{river_name} Report",
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "snippet": f"Current conditions report from Sonora Fly Co for {river_name}.",
+                "source": "Sonora Fly Co",
+                "url": link,
+                "rivers_mentioned": rivers,
+            })
+
+        print(f"  [reports] Sonora Fly Co (scrape): {len(entries)} reports found")
+    except Exception as e:
+        print(f"  [reports] Error scraping Sonora Fly Co: {e}")
+        traceback.print_exc()
+
+    return entries
+
+
 def _scrape_fly_shop_stream_reports():
     """
     Scrape The Fly Shop's stream report page for individual river reports.
@@ -604,6 +676,13 @@ def fetch_fishing_reports():
 
         except Exception as e:
             print(f"  [reports] Error fetching {feed['name']}: {e}")
+
+    # Sonora Fly Co reports (scraped from reports page)
+    try:
+        sonora_reports = _scrape_sonora_fly_reports()
+        all_reports.extend(sonora_reports)
+    except Exception as e:
+        print(f"  [reports] Error with Sonora Fly Co scrape: {e}")
 
     # The Fly Shop stream reports (scraped from HTML page)
     try:

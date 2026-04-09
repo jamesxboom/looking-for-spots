@@ -268,6 +268,15 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 .card-favorite, .detail-favorite { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* Shop Markers */
+.shop-popup { padding: 12px 16px; min-width: 200px; font-family: 'Inter', sans-serif; }
+.shop-popup-name { font-weight: 700; font-size: 14px; color: #1e293b; margin-bottom: 6px; }
+.shop-popup-address { font-size: 12px; color: #64748b; margin-bottom: 4px; line-height: 1.4; }
+.shop-popup-phone { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+.shop-popup-link { display: inline-block; font-size: 12px; color: #2563eb; text-decoration: none; font-weight: 500; }
+.shop-popup-link:hover { text-decoration: underline; }
+
 /* Responsive */
 @media (max-width: 900px) {
   .main { position: relative; }
@@ -358,7 +367,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
     <button class="nav-btn" id="nav-spots" onclick="setViewMode('list');toggleFavoritesFilter();" title="My Spots">⭐</button>
   </nav>
   <footer class="footer">
-    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a>, <a href="https://cdec.water.ca.gov" target="_blank" style="color:#64748b;">CDEC</a> &amp; <a href="https://dreamflows.com" target="_blank" style="color:#64748b;">DreamFlows</a> &middot; Shop reports from <a href="https://www.troutcreekoutfitters.com" target="_blank" style="color:#64748b;">Trout Creek</a>, <a href="https://renoflyshop.com" target="_blank" style="color:#64748b;">Reno Fly Shop</a> &amp; <a href="https://www.theflyshop.com" target="_blank" style="color:#64748b;">The Fly Shop</a> &middot; Provisional — not for safety decisions
+    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a>, <a href="https://cdec.water.ca.gov" target="_blank" style="color:#64748b;">CDEC</a> &amp; <a href="https://dreamflows.com" target="_blank" style="color:#64748b;">DreamFlows</a> &middot; Reports from 7 fly shops &middot; Provisional — not for safety decisions &middot; <a href="/about" style="color:#64748b;">About</a>
   </footer>
 </div>
 
@@ -372,9 +381,14 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
     <div class="reports-modal-body">
       <div class="reports-filter-bar" id="reports-filter-bar">
         <button class="reports-filter-btn active" onclick="filterReports('all', this)">All</button>
+        <button class="reports-filter-btn" onclick="filterReports('The Fly Shop', this)">The Fly Shop</button>
+        <button class="reports-filter-btn" onclick="filterReports('Ted Fay Fly Shop', this)">Ted Fay</button>
         <button class="reports-filter-btn" onclick="filterReports('Trout Creek Outfitters', this)">Trout Creek</button>
         <button class="reports-filter-btn" onclick="filterReports('Reno Fly Shop', this)">Reno Fly Shop</button>
-        <button class="reports-filter-btn" onclick="filterReports('The Fly Shop', this)">The Fly Shop</button>
+        <button class="reports-filter-btn" onclick="filterReports('Tahoe Fly Fishing', this)">Tahoe FF</button>
+        <button class="reports-filter-btn" onclick="filterReports('Lost Coast Outfitters', this)">Lost Coast</button>
+        <button class="reports-filter-btn" onclick="filterReports('Sonora Fly Co', this)">Sonora Fly</button>
+        <button class="reports-filter-btn" onclick="filterReports('CrossWaterCreek Outfitters', this)">CrossWaterCreek</button>
       </div>
       <div id="reports-list">
         <div style="text-align:center;padding:40px;color:#64748b;">Loading reports...</div>
@@ -804,6 +818,68 @@ const RIVERS = {
     thresholds: { greenFloor:30, greenCeiling:120, yellowFloor:15, yellowCeiling:200, rapidChange:30 },
     notes: "Near Paskenta. Small pristine freestone. Remote, difficult access. Wild trout."
   },
+};
+
+// ============================
+// FLY SHOP LOCATIONS
+// ============================
+const FLY_SHOPS = {
+  lost_coast: {
+    name: "Lost Coast Outfitters",
+    address: "540 Jackson St, San Francisco, CA 94133",
+    lat: 37.7964, lng: -122.4044,
+    url: "https://www.lostcoastoutfitters.com",
+    phone: "(415) 781-4848"
+  },
+  sonora_fly: {
+    name: "Sonora Fly Company",
+    address: "78 S Washington St, Sonora, CA 95370",
+    lat: 37.9827, lng: -120.3816,
+    url: "https://sonorafly.com",
+    phone: "(209) 297-9393"
+  },
+  tahoe_fly_fishing: {
+    name: "Tahoe Fly Fishing Outfitters",
+    address: "2705 Lake Tahoe Blvd, South Lake Tahoe, CA 96150",
+    lat: 38.9340, lng: -119.9770,
+    url: "https://tahoeflyfishing.com",
+    phone: "(530) 541-8208"
+  },
+  trout_creek: {
+    name: "Trout Creek Outfitters",
+    address: "10115 Donner Pass Rd, Truckee, CA 96161",
+    lat: 39.3277, lng: -120.1836,
+    url: "https://www.troutcreekoutfitters.com",
+    phone: "(530) 563-5119"
+  },
+  reno_fly_shop: {
+    name: "Reno Fly Shop",
+    address: "238 S Arlington Ave, Reno, NV 89501",
+    lat: 39.5226, lng: -119.8171,
+    url: "https://renoflyshop.com",
+    phone: "(775) 323-3474"
+  },
+  the_fly_shop: {
+    name: "The Fly Shop",
+    address: "4140 Churn Creek Rd, Redding, CA 96002",
+    lat: 40.5530, lng: -122.3350,
+    url: "https://www.theflyshop.com",
+    phone: "(800) 669-3474"
+  },
+  ted_fay: {
+    name: "Ted Fay Fly Shop",
+    address: "5732 Dunsmuir Ave, Dunsmuir, CA 96025",
+    lat: 41.2083, lng: -122.2717,
+    url: "https://www.tedfay.com",
+    phone: "(530) 235-2969"
+  },
+  crosswater_creek: {
+    name: "CrossWaterCreek Outfitters",
+    address: "3574 Mt. Diablo Blvd, Suite A, Lafayette, CA 94549",
+    lat: 37.8935, lng: -122.1185,
+    url: "https://crosswatercreek.com",
+    phone: "(925) 385-0101"
+  }
 };
 
 // ============================
@@ -1460,6 +1536,29 @@ async function fetchAllData() {
     }
     const bounds = Object.values(RIVERS).map(r => [r.lat, r.lng]);
     if (bounds.length) map.fitBounds(bounds, { padding: [60, 60] });
+
+    // Add fly shop markers (once)
+    if (!window._shopMarkersAdded) {
+      window._shopMarkersAdded = true;
+      for (const [id, shop] of Object.entries(FLY_SHOPS)) {
+        const shopIcon = L.divIcon({
+          className: '',
+          html: '<div style="width:28px;height:28px;background:#2563eb;border:3px solid white;border-radius:6px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:14px;cursor:pointer;">🏪</div>',
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+          popupAnchor: [0, -14]
+        });
+        const shopMarker = L.marker([shop.lat, shop.lng], { icon: shopIcon }).addTo(map);
+        shopMarker.bindPopup(`
+          <div class="shop-popup">
+            <div class="shop-popup-name">${shop.name}</div>
+            <div class="shop-popup-address">${shop.address}</div>
+            <div class="shop-popup-phone">${shop.phone}</div>
+            <a class="shop-popup-link" href="${shop.url}" target="_blank" rel="noopener">Visit Website →</a>
+          </div>
+        `);
+      }
+    }
   }
 
   riverData = {};
