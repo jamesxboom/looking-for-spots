@@ -15,7 +15,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Looking For Spots — NorCal Fly Fishing Conditions">
-<meta name="twitter:description" content="Public gauge data + fly shop reports for NorCal rivers. Green, yellow, or red — know before you go.">
+<meta name="twitter:description" content="Public gauge data + conditions reports for NorCal rivers. Green, yellow, or red — know before you go.">
 <meta name="twitter:image" content="https://looking-for-spots.onrender.com/og-preview.png">
 
 <!-- PWA -->
@@ -2117,48 +2117,44 @@ function renderDetailPanel(id, river, data, detail) {
     </div>
   ` : '';
 
+  // Compact weather line (replaces the full weather card)
+  let weatherLine = '';
+  if (data.weather) {
+    const w = data.weather;
+    const windDir = w.wind_dir || '';
+    const parts = [];
+    if (w.temp_f != null) parts.push(`${w.temp_f}°F`);
+    if (w.wind_mph != null) parts.push(`${w.wind_mph} mph ${windDir}`.trim());
+    if (w.precip_pct > 0) parts.push(`${w.precip_pct}% precip`);
+    if (w.short_forecast) parts.push(w.short_forecast);
+    weatherLine = `<div style="font-size:12px;color:#64748b;margin-bottom:16px;padding:8px 12px;background:#f8fafc;border-radius:6px;">${parts.join(' · ')}</div>`;
+  }
+
+  // Compact water temp line (only if available and meaningful)
+  let tempLine = '';
+  if (tempF !== null && tempF !== undefined) {
+    const tempNote = tempF > 68 ? ' — <span style="color:#dc2626;font-weight:600;">too warm, do not fish</span>'
+                   : tempF > 65 ? ' — <span style="color:#a16207;">warming, fish early</span>'
+                   : '';
+    tempLine = `<div style="font-size:12px;color:#64748b;margin-bottom:4px;">Water temp: ${tempF.toFixed(1)}°F${tempNote}</div>`;
+  }
+
   body.innerHTML = `
     <div class="detail-name">${river.name} <button class="share-btn" data-share="${id}" onclick="shareSpot('${id}')">Share Spot</button></div>
     <div class="detail-type">${gaugeInfo || typeLabel}</div>
     <div class="detail-status-bar ${status}">
       <div class="detail-status-text ${status}">${statusLabels[status] || status.toUpperCase()}</div>
-      <div class="detail-status-reason">${reason}</div>
+      <div class="detail-status-reason">${reason}${cfs != null ? ` (${Math.round(cfs).toLocaleString()} cfs)` : ''}</div>
     </div>
     ${trendHtml}
     ${warningHtml}
-    <div class="stat-grid">
-      <div class="stat-box">
-        <div class="stat-label">Current Flow</div>
-        <div class="stat-value">${cfs !== null && cfs !== undefined ? Math.round(cfs).toLocaleString() : '—'}</div>
-        <div class="stat-context">cfs ${changeHtml}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Water Temp</div>
-        <div class="stat-value">${tempHtml}</div>
-        <div class="stat-context">${tempContext}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Optimal Range</div>
-        <div class="stat-value" style="font-size:16px;">${rangeDisplay}</div>
-        <div class="stat-context">cfs for fly fishing</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Access</div>
-        <div class="stat-value" style="font-size:16px;">${(river.fishingModes || ['wade']).map(m =>
-          m === 'wade' ? '🥾' : m === 'drift' ? '🚣' : m === 'boat' ? '⛵' : m
-        ).join(' ')}</div>
-        <div class="stat-context">${(river.fishingModes || ['wade']).join(', ')}</div>
-      </div>
-    </div>
+    ${tempLine}
     ${barHtml}
     ${modeHtml}
-    ${weatherHtml}
+    ${weatherLine}
     ${hatchHtml}
     ${getReportsHtml(id)}
     ${notesHtml}
-    <div class="detail-gauge">
-      ${gaugeInfo ? `<span>${gaugeInfo}</span>` : ''}
-    </div>
     <div class="email-signup">
       <h3>Get the Weekly Green Light Report</h3>
       <p>Every Monday — which spots went green, what's hatching, and where to fish.</p>
@@ -2167,18 +2163,6 @@ function renderDetailPanel(id, river, data, detail) {
         <button type="submit">Get the Report</button>
       </form>
       <div id="signup-msg" class="email-signup-msg"></div>
-    </div>
-    <div class="suggest-box">
-      <h4>What should we build next?</h4>
-      <p>Missing a river? Want a feature? Tell us.</p>
-      <form onsubmit="handleSuggest(event)">
-        <textarea placeholder="e.g. Add the Feather River, show moon phase, text alerts when a spot goes green..." maxlength="1000"></textarea>
-        <div class="suggest-box-row">
-          <input type="email" placeholder="Email (optional — if you want a reply)">
-          <button type="submit">Send</button>
-        </div>
-      </form>
-      <div id="suggest-msg" class="suggest-msg"></div>
     </div>
     <div class="detail-disclaimer">Data from USGS &amp; CDEC. Provisional and subject to revision. Not for safety decisions.</div>
   `;
@@ -2362,23 +2346,17 @@ function getReportsHtml(riverId) {
   const reports = getReportsForRiver(riverId);
   if (!reports.length) return '';
 
-  const cards = reports.map(r => {
+  // Show max 2 compact report lines
+  const lines = reports.slice(0, 2).map(r => {
     const dateStr = r.date ? new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-    return `
-      <div class="report-card">
-        <div class="report-card-title">${escapeHtml(r.title)}</div>
-        <div class="report-card-meta">Shop report${dateStr ? ' · ' + dateStr : ''}</div>
-        <div class="report-card-snippet">${escapeHtml(r.snippet)}</div>
-      </div>
-    `;
+    return `<div style="font-size:12px;color:#475569;padding:6px 0;border-bottom:1px solid #f1f5f9;">${escapeHtml(r.snippet)}${dateStr ? ` <span style="color:#94a3b8;">(${dateStr})</span>` : ''}</div>`;
   }).join('');
 
   return `
     <div class="reports-section">
       <div class="reports-title">Conditions Reports</div>
-      ${cards}
+      ${lines}
       <span class="reports-all-link" onclick="openReportsModal()">View all reports →</span>
-      <div style="font-size:10px;color:#94a3b8;margin-top:8px;font-style:italic;">Conditions compiled from local fly shop updates.</div>
     </div>
   `;
 }
