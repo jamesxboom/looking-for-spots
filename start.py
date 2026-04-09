@@ -434,6 +434,93 @@ def _match_rivers(text):
     return [kw for kw in RIVER_KEYWORDS if kw in text_lower]
 
 
+# ── Report summarization ──────────────────────────────────────
+# We store the raw scraped content internally but serve only short,
+# original-language condition summaries to the frontend.  This avoids
+# reproducing shop report text verbatim while still giving users
+# useful at-a-glance info.
+
+_CONDITION_PATTERNS = [
+    # Fishing quality
+    (re.compile(r'\b(excellent|outstanding|incredible|phenomenal|epic)\b', re.I), "excellent"),
+    (re.compile(r'\b(very good|great|fantastic|superb)\b', re.I), "very good"),
+    (re.compile(r'\b(good|solid|steady|consistent|productive)\b', re.I), "good"),
+    (re.compile(r'\b(fair|decent|moderate|ok|average)\b', re.I), "fair"),
+    (re.compile(r'\b(slow|tough|poor|challenging|difficult|off)\b', re.I), "slow"),
+    (re.compile(r'\b(blown out|unfishable|closed|too high|flooding|muddy)\b', re.I), "unfishable"),
+]
+
+_HATCH_PATTERNS = re.compile(
+    r'\b(BWO|PMD|caddis|mayfl(?:y|ies)|stone ?fl(?:y|ies)|midge|baetis|'
+    r'hex|pale morning dun|blue wing(?:ed)? olive|golden stone|sally|'
+    r'october caddis|green drake|trico|callibaetis|chironomid|streamer|'
+    r'nymph|dry (?:fly|flies)|hopper|ant|beetle|terrestrial|egg pattern|'
+    r'indicator|swing|euro)\b', re.I
+)
+
+_FLOW_PATTERN = re.compile(r'(\d[\d,]*)\s*(?:cfs|CFS)')
+_CLARITY_PATTERNS = re.compile(r'\b(clear|stained|off-color|murky|muddy|turbid|visibility|vis)\b', re.I)
+
+
+def _summarize_report(title, raw_snippet, rivers):
+    """
+    Produce a short, original conditions summary from raw report content.
+    Returns a 1-2 sentence summary that does NOT reproduce the source text.
+    """
+    text = f"{title} {raw_snippet}"
+
+    # 1. Determine fishing quality
+    quality = None
+    for pattern, label in _CONDITION_PATTERNS:
+        if pattern.search(text):
+            quality = label
+            break
+
+    # 2. Find hatches/fly patterns mentioned
+    hatches = list(set(m.group(0).lower() for m in _HATCH_PATTERNS.finditer(text)))
+    hatches = hatches[:4]  # Cap at 4
+
+    # 3. Find flow mentions
+    flow_match = _FLOW_PATTERN.search(text)
+    flow_str = flow_match.group(1).replace(",", "") if flow_match else None
+
+    # 4. Clarity
+    clarity_match = _CLARITY_PATTERNS.search(raw_snippet)
+    clarity = clarity_match.group(0).lower() if clarity_match else None
+
+    # 5. Build summary
+    parts = []
+
+    # River context
+    river_name = rivers[0].title() if rivers else None
+
+    if quality:
+        if river_name:
+            parts.append(f"Fishing on the {river_name} reported as {quality}.")
+        else:
+            parts.append(f"Fishing reported as {quality}.")
+    elif river_name:
+        parts.append(f"Conditions update for the {river_name}.")
+    else:
+        parts.append("Conditions update available.")
+
+    details = []
+    if flow_str:
+        details.append(f"flows around {flow_str} cfs")
+    if clarity and clarity not in ("visibility", "vis"):
+        details.append(f"water {clarity}")
+    if hatches:
+        details.append(f"try {', '.join(hatches)}")
+
+    if details:
+        detail_str = details[0][0].upper() + details[0][1:]
+        if len(details) > 1:
+            detail_str += ", " + ", ".join(details[1:])
+        parts.append(detail_str + ".")
+
+    return " ".join(parts)
+
+
 def _parse_atom_feed(xml_text, source_name, base_url):
     """Parse Shopify Atom feed XML into report entries."""
     entries = []
@@ -467,21 +554,23 @@ def _parse_atom_feed(xml_text, source_name, base_url):
             elif summary_el is not None and summary_el.text:
                 raw_content = summary_el.text
 
-            snippet = strip_html(raw_content)[:300]
-            if len(strip_html(raw_content)) > 300:
-                snippet += "..."
+            raw_text = strip_html(raw_content)
 
             # Match rivers
             full_text = f"{title} {raw_content}"
             rivers = _match_rivers(full_text)
 
+            # Summarize instead of using raw snippet
+            summary = _summarize_report(title, raw_text, rivers)
+
             entries.append({
                 "title": title,
                 "date": date_str[:10] if date_str else "",
-                "snippet": snippet,
-                "source": source_name,
-                "url": link,
+                "snippet": summary,
+                "source": "Local shop report",
+                "url": "",
                 "rivers_mentioned": rivers,
+                "_shop": source_name,   # internal only, not sent to frontend
             })
 
     except ET.ParseError as e:
@@ -504,7 +593,6 @@ def _parse_rss_feed(xml_text, source_name, base_url):
 
             title = title_el.text if title_el is not None else "Untitled"
             date_str = pub_date_el.text if pub_date_el is not None else ""
-            link = link_el.text if link_el is not None else ""
 
             # Parse RSS date format (e.g., "Mon, 04 Apr 2026 12:00:00 +0000")
             parsed_date = ""
@@ -523,20 +611,22 @@ def _parse_rss_feed(xml_text, source_name, base_url):
             elif desc_el is not None and desc_el.text:
                 raw_content = desc_el.text
 
-            snippet = strip_html(raw_content)[:300]
-            if len(strip_html(raw_content)) > 300:
-                snippet += "..."
+            raw_text = strip_html(raw_content)
 
             full_text = f"{title} {raw_content}"
             rivers = _match_rivers(full_text)
 
+            # Summarize instead of using raw snippet
+            summary = _summarize_report(title, raw_text, rivers)
+
             entries.append({
                 "title": title,
                 "date": parsed_date,
-                "snippet": snippet,
-                "source": source_name,
-                "url": link,
+                "snippet": summary,
+                "source": "Local shop report",
+                "url": "",
                 "rivers_mentioned": rivers,
+                "_shop": source_name,   # internal only, not sent to frontend
             })
 
     except ET.ParseError as e:
@@ -575,12 +665,14 @@ def _scrape_sonora_fly_reports():
             full_text = river_name
             rivers = _match_rivers(full_text)
 
+            summary = f"Conditions update for the {river_name}." if rivers else f"Conditions update for {river_name}."
+
             entries.append({
-                "title": f"{river_name} Report",
+                "title": f"{river_name} Conditions",
                 "date": datetime.now().strftime("%Y-%m-%d"),
-                "snippet": f"Current conditions report from Sonora Fly Co for {river_name}.",
-                "source": "Sonora Fly Co",
-                "url": link,
+                "snippet": summary,
+                "source": "Local shop report",
+                "url": "",
                 "rivers_mentioned": rivers,
             })
 
@@ -625,19 +717,20 @@ def _scrape_fly_shop_stream_reports():
             except ValueError:
                 parsed_date = date_str
 
-            snippet = strip_html(raw_content)[:400]
-            if len(strip_html(raw_content)) > 400:
-                snippet += "..."
+            raw_text = strip_html(raw_content)
 
             full_text = f"{river_name} {raw_content}"
             rivers = _match_rivers(full_text)
 
+            # Summarize instead of using raw snippet
+            summary = _summarize_report(river_name, raw_text, rivers)
+
             entries.append({
-                "title": f"{river_name} Stream Report",
+                "title": f"{river_name} Conditions",
                 "date": parsed_date,
-                "snippet": snippet,
-                "source": "The Fly Shop",
-                "url": f"{url}",
+                "snippet": summary,
+                "source": "Local shop report",
+                "url": "",
                 "rivers_mentioned": rivers,
             })
 
@@ -1069,8 +1162,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def _serve_reports(self):
         with _data_lock:
+            # Strip internal fields (like _shop) before sending to frontend
+            clean_reports = [
+                {k: v for k, v in r.items() if not k.startswith("_")}
+                for r in _reports_data
+            ]
             payload = {
-                "reports": list(_reports_data),
+                "reports": clean_reports,
                 "lastFetch": _last_reports_fetch,
             }
         self._json_response(payload)

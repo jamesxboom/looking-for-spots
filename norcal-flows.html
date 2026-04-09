@@ -317,7 +317,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
       <div class="header-controls">
         <button class="header-btn" id="view-toggle" style="display:none;">List</button>
         <a href="/about" class="header-btn" style="text-decoration:none;">About</a>
-        <button class="header-btn" id="reports-btn" title="Fishing reports from local shops" onclick="openReportsModal()">Fly Shop Reports</button>
+        <button class="header-btn" id="reports-btn" title="Conditions reports by waterway" onclick="openReportsModal()">Reports</button>
         <button class="header-btn" id="geolocation-btn" title="Find nearby spots">📍 Near Me</button>
         <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Check Now</button>
       </div>
@@ -367,7 +367,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
     <button class="nav-btn" id="nav-spots" onclick="setViewMode('list');toggleFavoritesFilter();" title="My Spots">⭐</button>
   </nav>
   <footer class="footer">
-    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a>, <a href="https://cdec.water.ca.gov" target="_blank" style="color:#64748b;">CDEC</a> &amp; <a href="https://dreamflows.com" target="_blank" style="color:#64748b;">DreamFlows</a> &middot; Reports from 7 fly shops &middot; Provisional — not for safety decisions &middot; <a href="/about" style="color:#64748b;">About</a>
+    Data from <a href="https://waterdata.usgs.gov" target="_blank" style="color:#64748b;">USGS</a>, <a href="https://cdec.water.ca.gov" target="_blank" style="color:#64748b;">CDEC</a> &amp; <a href="https://dreamflows.com" target="_blank" style="color:#64748b;">DreamFlows</a> &middot; Reports from local fly shops &middot; Provisional — not for safety decisions &middot; <a href="/about" style="color:#64748b;">About</a>
   </footer>
 </div>
 
@@ -375,23 +375,18 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 <div class="reports-modal-overlay" id="reports-modal" onclick="closeReportsModal(event)">
   <div class="reports-modal" onclick="event.stopPropagation()">
     <div class="reports-modal-header">
-      <h2>Shop Fishing Reports</h2>
+      <h2>Conditions Reports</h2>
       <button class="reports-modal-close" onclick="closeReportsModal()" aria-label="Close reports">&times;</button>
     </div>
     <div class="reports-modal-body">
       <div class="reports-filter-bar" id="reports-filter-bar">
         <button class="reports-filter-btn active" onclick="filterReports('all', this)">All</button>
-        <button class="reports-filter-btn" onclick="filterReports('The Fly Shop', this)">The Fly Shop</button>
-        <button class="reports-filter-btn" onclick="filterReports('Ted Fay Fly Shop', this)">Ted Fay</button>
-        <button class="reports-filter-btn" onclick="filterReports('Trout Creek Outfitters', this)">Trout Creek</button>
-        <button class="reports-filter-btn" onclick="filterReports('Reno Fly Shop', this)">Reno Fly Shop</button>
-        <button class="reports-filter-btn" onclick="filterReports('Tahoe Fly Fishing', this)">Tahoe FF</button>
-        <button class="reports-filter-btn" onclick="filterReports('Lost Coast Outfitters', this)">Lost Coast</button>
-        <button class="reports-filter-btn" onclick="filterReports('Sonora Fly Co', this)">Sonora Fly</button>
-        <button class="reports-filter-btn" onclick="filterReports('CrossWaterCreek Outfitters', this)">CrossWaterCreek</button>
       </div>
       <div id="reports-list">
         <div style="text-align:center;padding:40px;color:#64748b;">Loading reports...</div>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;font-style:italic;">
+        Conditions summaries compiled from local fly shop reports. Support your local shops — they keep our rivers healthy.
       </div>
     </div>
   </div>
@@ -2276,6 +2271,7 @@ async function fetchReports() {
 function openReportsModal() {
   const modal = document.getElementById('reports-modal');
   modal.classList.add('visible');
+  _buildReportFilterButtons();
   renderReportsList();
 }
 
@@ -2286,17 +2282,48 @@ function closeReportsModal(event) {
 
 function filterReports(filter, btn) {
   reportsFilter = filter;
-  // Update active button
   document.querySelectorAll('.reports-filter-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderReportsList();
 }
 
+function _buildReportFilterButtons() {
+  // Build filter buttons dynamically from rivers mentioned in reports
+  const bar = document.getElementById('reports-filter-bar');
+  if (!bar || !reportsData.length) return;
+
+  // Collect all unique rivers across all reports
+  const riverCounts = {};
+  reportsData.forEach(r => {
+    (r.rivers_mentioned || []).forEach(rv => {
+      riverCounts[rv] = (riverCounts[rv] || 0) + 1;
+    });
+  });
+
+  // Sort by frequency, take top 12
+  const topRivers = Object.entries(riverCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([rv]) => rv);
+
+  bar.innerHTML = '<button class="reports-filter-btn active" onclick="filterReports(\'all\', this)">All</button>';
+  topRivers.forEach(rv => {
+    const label = rv.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    bar.innerHTML += `<button class="reports-filter-btn" onclick="filterReports('river:${rv}', this)">${label}</button>`;
+  });
+}
+
 function renderReportsList() {
   const container = document.getElementById('reports-list');
   let filtered = reportsData;
+
   if (reportsFilter !== 'all') {
-    filtered = reportsData.filter(r => r.source === reportsFilter);
+    if (reportsFilter.startsWith('river:')) {
+      const river = reportsFilter.slice(6);
+      filtered = reportsData.filter(r => (r.rivers_mentioned || []).includes(river));
+    } else {
+      filtered = reportsData.filter(r => r.source === reportsFilter);
+    }
   }
 
   if (filtered.length === 0) {
@@ -2309,11 +2336,14 @@ function renderReportsList() {
       `<span class="report-river-tag">${rv}</span>`
     ).join('');
     const dateStr = r.date ? new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    const titleText = r.rivers_mentioned && r.rivers_mentioned.length
+      ? r.rivers_mentioned[0].split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Conditions'
+      : escapeHtml(r.title);
     return `
       <div class="report-full-card">
-        <div class="report-full-title"><a href="${r.url}" target="_blank" rel="noopener">${escapeHtml(r.title)}</a></div>
+        <div class="report-full-title">${titleText}</div>
         <div class="report-full-meta">
-          <span>${r.source}</span>
+          <span>Shop report</span>
           ${dateStr ? `<span>${dateStr}</span>` : ''}
         </div>
         <div class="report-full-snippet">${escapeHtml(r.snippet)}</div>
@@ -2336,8 +2366,8 @@ function getReportsHtml(riverId) {
     const dateStr = r.date ? new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
     return `
       <div class="report-card">
-        <div class="report-card-title"><a href="${r.url}" target="_blank" rel="noopener">${escapeHtml(r.title)}</a></div>
-        <div class="report-card-meta">${r.source}${dateStr ? ' · ' + dateStr : ''}</div>
+        <div class="report-card-title">${escapeHtml(r.title)}</div>
+        <div class="report-card-meta">Shop report${dateStr ? ' · ' + dateStr : ''}</div>
         <div class="report-card-snippet">${escapeHtml(r.snippet)}</div>
       </div>
     `;
@@ -2345,10 +2375,10 @@ function getReportsHtml(riverId) {
 
   return `
     <div class="reports-section">
-      <div class="reports-title">Fly Shop Reports</div>
+      <div class="reports-title">Conditions Reports</div>
       ${cards}
       <span class="reports-all-link" onclick="openReportsModal()">View all reports →</span>
-      <div style="font-size:10px;color:#94a3b8;margin-top:8px;font-style:italic;">Reports from published shop updates. Support these shops — they keep our rivers healthy.</div>
+      <div style="font-size:10px;color:#94a3b8;margin-top:8px;font-style:italic;">Conditions compiled from local fly shop updates.</div>
     </div>
   `;
 }
