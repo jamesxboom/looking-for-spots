@@ -1942,6 +1942,47 @@ async function showDetail(id) {
   }
 }
 
+function getSunTimes(lat, lng) {
+  // Solar calculation (NOAA simplified) — returns { rise: "6:12 AM", set: "7:45 PM" }
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const dayOfYear = Math.floor((now - start) / 86400000) + 1;
+  const zenith = 90.833;
+  const D2R = Math.PI / 180;
+  const R2D = 180 / Math.PI;
+
+  function calcSun(rising) {
+    const lngHour = lng / 15;
+    const t = dayOfYear + ((rising ? 6 : 18) - lngHour) / 24;
+    const M = (0.9856 * t) - 3.289;
+    let L = M + (1.916 * Math.sin(M * D2R)) + (0.020 * Math.sin(2 * M * D2R)) + 282.634;
+    L = ((L % 360) + 360) % 360;
+    let RA = R2D * Math.atan(0.91764 * Math.tan(L * D2R));
+    RA = ((RA % 360) + 360) % 360;
+    const Lq = Math.floor(L / 90) * 90;
+    const RAq = Math.floor(RA / 90) * 90;
+    RA = (RA + (Lq - RAq)) / 15;
+    const sinDec = 0.39782 * Math.sin(L * D2R);
+    const cosDec = Math.cos(Math.asin(sinDec));
+    const cosH = (Math.cos(zenith * D2R) - (sinDec * Math.sin(lat * D2R))) / (cosDec * Math.cos(lat * D2R));
+    if (cosH > 1 || cosH < -1) return null;
+    let H = R2D * Math.acos(cosH);
+    H = rising ? (360 - H) : H;
+    H = H / 15;
+    const T = H + RA - (0.06571 * t) - 6.622;
+    let UT = ((T - lngHour) % 24 + 24) % 24;
+    // Convert to local time (Pacific = UTC-7 or UTC-8)
+    const offset = -now.getTimezoneOffset() / 60;
+    let local = ((UT + offset) % 24 + 24) % 24;
+    const hrs = Math.floor(local);
+    const mins = Math.round((local - hrs) * 60);
+    const ampm = hrs >= 12 ? 'PM' : 'AM';
+    const h12 = hrs % 12 || 12;
+    return `${h12}:${mins.toString().padStart(2, '0')} ${ampm}`;
+  }
+  return { rise: calcSun(true), set: calcSun(false) };
+}
+
 function renderDetailPanel(id, river, data, detail) {
   const body = document.getElementById('detail-body');
 
@@ -2148,17 +2189,24 @@ function renderDetailPanel(id, river, data, detail) {
     </div>
   ` : '';
 
-  // Compact weather line (replaces the full weather card)
-  let weatherLine = '';
+  // Weather + sunrise/sunset — one compact block
+  let conditionsBlock = '';
+  const sunTimes = (river.lat && river.lng) ? getSunTimes(river.lat, river.lng) : null;
+  const weatherParts = [];
   if (data.weather) {
     const w = data.weather;
-    const windDir = w.wind_dir || '';
-    const parts = [];
-    if (w.temp_f != null) parts.push(`${w.temp_f}°F`);
-    if (w.wind_mph != null) parts.push(`${w.wind_mph} mph ${windDir}`.trim());
-    if (w.precip_pct > 0) parts.push(`${w.precip_pct}% precip`);
-    if (w.short_forecast) parts.push(w.short_forecast);
-    weatherLine = `<div style="font-size:12px;color:#64748b;margin-bottom:16px;padding:8px 12px;background:#f8fafc;border-radius:6px;">${parts.join(' · ')}</div>`;
+    if (w.temp_f != null) weatherParts.push(`${w.temp_f}°F`);
+    if (w.wind_mph != null) weatherParts.push(`${w.wind_mph} mph ${(w.wind_dir || '')}`.trim());
+    if (w.precip_pct > 0) weatherParts.push(`${w.precip_pct}% precip`);
+  }
+  if (sunTimes && sunTimes.rise && sunTimes.set) {
+    weatherParts.push(`☀ ${sunTimes.rise} – ${sunTimes.set}`);
+  }
+  if (data.weather && data.weather.short_forecast) {
+    weatherParts.push(data.weather.short_forecast);
+  }
+  if (weatherParts.length) {
+    conditionsBlock = `<div style="font-size:12px;color:#64748b;margin-bottom:16px;padding:8px 12px;background:#f8fafc;border-radius:6px;">${weatherParts.join(' · ')}</div>`;
   }
 
   // Compact water temp line (only if available and meaningful)
@@ -2175,14 +2223,14 @@ function renderDetailPanel(id, river, data, detail) {
     <div class="detail-type">${gaugeInfo || typeLabel}</div>
     <div class="detail-status-bar ${status}">
       <div class="detail-status-text ${status}">${statusLabels[status] || status.toUpperCase()}</div>
-      <div class="detail-status-reason">${reason}${cfs != null ? ` (${Math.round(cfs).toLocaleString()} cfs)` : ''}</div>
+      <div class="detail-status-reason">${reason}${cfs != null && !reason.includes('cfs') ? ` (${Math.round(cfs).toLocaleString()} cfs)` : ''}</div>
     </div>
     ${trendHtml}
     ${warningHtml}
     ${tempLine}
     ${barHtml}
     ${modeHtml}
-    ${weatherLine}
+    ${conditionsBlock}
     ${hatchHtml}
     ${getReportsHtml(id)}
     ${notesHtml}
