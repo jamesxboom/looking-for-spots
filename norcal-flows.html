@@ -2189,30 +2189,33 @@ function renderDetailPanel(id, river, data, detail) {
     </div>
   ` : '';
 
-  // Weather + sunrise/sunset — one compact block
+  // Sunrise/sunset + weather — two clean lines
   let conditionsBlock = '';
   const sunTimes = (river.lat && river.lng) ? getSunTimes(river.lat, river.lng) : null;
-  const weatherParts = [];
+
+  let sunLine = '';
+  if (sunTimes && sunTimes.rise && sunTimes.set) {
+    sunLine = `<div>☀ ${sunTimes.rise} – ${sunTimes.set}</div>`;
+  }
+
+  let weatherLine = '';
   if (data.weather) {
     const w = data.weather;
-    if (w.temp_f != null) weatherParts.push(`${w.temp_f}°F`);
-    if (w.wind_mph != null) weatherParts.push(`${w.wind_mph} mph ${(w.wind_dir || '')}`.trim());
-    if (w.precip_pct > 0) weatherParts.push(`${w.precip_pct}% precip`);
+    const parts = [];
+    if (w.temp_f != null) parts.push(`${w.temp_f}°F`);
+    if (w.wind_mph != null) parts.push(`${w.wind_mph} mph ${(w.wind_dir || '')}`.trim());
+    if (w.precip_pct > 0) parts.push(`${w.precip_pct}% chance precip`);
+    if (w.short_forecast) {
+      let forecast = w.short_forecast;
+      const thenIdx = forecast.toLowerCase().indexOf(' then ');
+      if (thenIdx > 0) forecast = forecast.substring(0, thenIdx);
+      parts.push(forecast);
+    }
+    if (parts.length) weatherLine = `<div>${parts.join(' · ')}</div>`;
   }
-  if (sunTimes && sunTimes.rise && sunTimes.set) {
-    weatherParts.push(`☀ ${sunTimes.rise} – ${sunTimes.set}`);
-  }
-  if (data.weather && data.weather.short_forecast) {
-    // Truncate long forecasts — NWS often repeats ("Showers then Showers And Thunderstorms")
-    let forecast = data.weather.short_forecast;
-    // Take only the first clause (before "then" or "and" repeated patterns)
-    const thenIdx = forecast.toLowerCase().indexOf(' then ');
-    if (thenIdx > 0) forecast = forecast.substring(0, thenIdx);
-    if (forecast.length > 30) forecast = forecast.substring(0, 30).trim() + '...';
-    weatherParts.push(forecast);
-  }
-  if (weatherParts.length) {
-    conditionsBlock = `<div style="font-size:12px;color:#64748b;margin-bottom:16px;padding:8px 12px;background:#f8fafc;border-radius:6px;">${weatherParts.join(' · ')}</div>`;
+
+  if (sunLine || weatherLine) {
+    conditionsBlock = `<div style="font-size:12px;color:#64748b;margin-bottom:16px;padding:10px 12px;background:#f8fafc;border-radius:6px;line-height:1.6;">${sunLine}${weatherLine}</div>`;
   }
 
   // Compact water temp line (only if available and meaningful)
@@ -2331,6 +2334,18 @@ async function fetchReports() {
     if (resp && resp.reports) {
       reportsData = resp.reports;
       console.log(`[reports] ${reportsData.length} reports loaded`);
+      // If a river detail panel is open, update its reports section
+      if (selectedRiverId) {
+        const placeholder = document.getElementById('reports-placeholder');
+        if (placeholder) {
+          const river = RIVERS[selectedRiverId];
+          const data = riverData[selectedRiverId] || {};
+          const detail = {};
+          // Re-inject the reports HTML into the detail panel
+          const reportsHtml = getReportsHtml(selectedRiverId);
+          placeholder.outerHTML = reportsHtml;
+        }
+      }
     }
   } catch (e) {
     console.warn('[reports] Could not fetch reports:', e.message);
@@ -2463,11 +2478,11 @@ function escapeHtml(str) {
 function getReportsHtml(riverId) {
   const reports = getReportsForRiver(riverId);
   if (!reports.length) {
-    // Only show empty state if we have some reports loaded (meaning we checked, just none match this river)
-    if (reportsData && reportsData.length > 0) {
-      return `<div style="font-size:12px;color:#94a3b8;font-style:italic;margin:12px 0;">No recent shop reports for this river.</div>`;
+    if (!reportsData || !reportsData.length) {
+      // Reports haven't loaded yet — show placeholder that will update
+      return `<div id="reports-placeholder" style="font-size:12px;color:#94a3b8;font-style:italic;margin:12px 0;">Loading reports...</div>`;
     }
-    return '';
+    return `<div style="font-size:12px;color:#94a3b8;font-style:italic;margin:12px 0;">No recent shop reports for this river.</div>`;
   }
 
   // Show max 2 compact report lines
