@@ -2486,29 +2486,23 @@ function getReportsHtml(riverId) {
 }
 
 function getReportsForRiver(riverId) {
+  // Simple: a report shows on a river ONLY if the backend tagged it with a matching keyword.
+  // The Fly Shop reports already say "McCloud River", "Upper Sacramento River", etc.
+  // The backend's _match_rivers() tags each report with matching RIVER_KEYWORDS.
+  // We just check if any tag overlaps with this river's name.
   if (!reportsData || !reportsData.length) return [];
   const river = RIVERS[riverId];
   if (!river) return [];
 
-  // Build PRIMARY search terms — these are the river's canonical names
-  // Must match the RIVER_KEYWORDS used by the backend to tag reports
   const name = river.name.toLowerCase();
 
-  // Extract meaningful river name words (skip generic terms)
-  const skipWords = new Set(['river', 'creek', 'fork', 'near', 'above', 'below', 'south', 'north',
-    'east', 'west', 'middle', 'upper', 'lower', 'lake', 'reservoir', 'dam', 'bridge', 'at', 'the']);
-  const nameWords = name.replace(/[()]/g, '').split(/\s+/).filter(w => w.length > 3 && !skipWords.has(w));
-
-  // Only match against the backend's rivers_mentioned tags — not loose text search.
-  // This prevents "american" matching a report tagged for "truckee".
   return reportsData.filter(r => {
-    const rivers = r.rivers_mentioned || [];
-    if (!rivers.length) return false;
-
-    // Check if any of the river's name words appear in the report's river tags
-    return nameWords.some(word => rivers.some(rv => rv.includes(word))) ||
-           rivers.some(rv => name.includes(rv));
-  }).slice(0, 2); // Max 2 reports per river
+    const tags = r.rivers_mentioned || [];
+    if (!tags.length) return false;
+    // A tag matches if it appears in the river name, or the river name contains the tag
+    // e.g. tag "mccloud" matches "McCloud River", tag "upper sac" matches "Upper Sacramento River"
+    return tags.some(tag => name.includes(tag));
+  }).slice(0, 2);
 }
 
 // ============================
