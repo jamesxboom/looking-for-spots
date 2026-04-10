@@ -2203,7 +2203,13 @@ function renderDetailPanel(id, river, data, detail) {
     weatherParts.push(`☀ ${sunTimes.rise} – ${sunTimes.set}`);
   }
   if (data.weather && data.weather.short_forecast) {
-    weatherParts.push(data.weather.short_forecast);
+    // Truncate long forecasts — NWS often repeats ("Showers then Showers And Thunderstorms")
+    let forecast = data.weather.short_forecast;
+    // Take only the first clause (before "then" or "and" repeated patterns)
+    const thenIdx = forecast.toLowerCase().indexOf(' then ');
+    if (thenIdx > 0) forecast = forecast.substring(0, thenIdx);
+    if (forecast.length > 30) forecast = forecast.substring(0, 30).trim() + '...';
+    weatherParts.push(forecast);
   }
   if (weatherParts.length) {
     conditionsBlock = `<div style="font-size:12px;color:#64748b;margin-bottom:16px;padding:8px 12px;background:#f8fafc;border-radius:6px;">${weatherParts.join(' · ')}</div>`;
@@ -2484,26 +2490,25 @@ function getReportsForRiver(riverId) {
   const river = RIVERS[riverId];
   if (!river) return [];
 
-  // Build search terms from river name
+  // Build PRIMARY search terms — these are the river's canonical names
+  // Must match the RIVER_KEYWORDS used by the backend to tag reports
   const name = river.name.toLowerCase();
-  const searchTerms = [name];
 
-  // Extract key words (e.g., "Truckee River (Near Truckee)" -> "truckee")
-  const words = name.replace(/[()]/g, '').split(/\s+/).filter(w => w.length > 3 && !['river', 'creek', 'fork', 'near', 'above', 'below', 'south', 'north', 'east', 'west', 'middle', 'upper', 'lower'].includes(w));
-  searchTerms.push(...words);
+  // Extract meaningful river name words (skip generic terms)
+  const skipWords = new Set(['river', 'creek', 'fork', 'near', 'above', 'below', 'south', 'north',
+    'east', 'west', 'middle', 'upper', 'lower', 'lake', 'reservoir', 'dam', 'bridge', 'at', 'the']);
+  const nameWords = name.replace(/[()]/g, '').split(/\s+/).filter(w => w.length > 3 && !skipWords.has(w));
 
-  // Also try the ID components
-  const idParts = riverId.split('_').filter(p => p.length > 2);
-  searchTerms.push(...idParts);
-
+  // Only match against the backend's rivers_mentioned tags — not loose text search.
+  // This prevents "american" matching a report tagged for "truckee".
   return reportsData.filter(r => {
     const rivers = r.rivers_mentioned || [];
-    const titleLower = (r.title || '').toLowerCase();
-    const snippetLower = (r.snippet || '').toLowerCase();
-    const fullText = titleLower + ' ' + snippetLower + ' ' + rivers.join(' ');
+    if (!rivers.length) return false;
 
-    return searchTerms.some(term => fullText.includes(term));
-  }).slice(0, 3); // Max 3 reports per river
+    // Check if any of the river's name words appear in the report's river tags
+    return nameWords.some(word => rivers.some(rv => rv.includes(word))) ||
+           rivers.some(rv => name.includes(rv));
+  }).slice(0, 2); // Max 2 reports per river
 }
 
 // ============================

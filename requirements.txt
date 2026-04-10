@@ -1,1 +1,0 @@
-# No dependencies — start.py uses only Python stdlib
