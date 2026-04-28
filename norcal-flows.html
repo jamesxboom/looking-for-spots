@@ -15,7 +15,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Looking For Spots — NorCal Fly Fishing Conditions">
-<meta name="twitter:description" content="Public gauge data + conditions reports for NorCal rivers. Green, yellow, or red — know before you go.">
+<meta name="twitter:description" content="Public gauge data + fly shop reports for NorCal rivers. Green, yellow, or red — know before you go.">
 <meta name="twitter:image" content="https://looking-for-spots.onrender.com/og-preview.png">
 
 <!-- PWA -->
@@ -326,7 +326,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
       <div class="header-controls">
         <button class="header-btn" id="view-toggle" style="display:none;">List</button>
         <a href="/about" class="header-btn" style="text-decoration:none;">About</a>
-        <button class="header-btn" id="reports-btn" title="Conditions reports by waterway" onclick="openReportsModal()">Reports</button>
+        <button class="header-btn" id="reports-btn" title="Recent shop updates by waterway" onclick="openReportsModal()">Shop Reports</button>
         <button class="header-btn" id="geolocation-btn" title="Find nearby spots">📍 Near Me</button>
         <button class="refresh-btn" id="refresh-btn" onclick="fetchAllData()">Check Now</button>
       </div>
@@ -406,7 +406,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; back
 <div class="reports-modal-overlay" id="reports-modal" onclick="closeReportsModal(event)">
   <div class="reports-modal" onclick="event.stopPropagation()">
     <div class="reports-modal-header">
-      <h2>Conditions Reports</h2>
+      <h2>Shop Reports</h2>
       <button class="reports-modal-close" onclick="closeReportsModal()" aria-label="Close reports">&times;</button>
     </div>
     <div class="reports-modal-body">
@@ -2493,7 +2493,7 @@ function getReportsHtml(riverId) {
 
   return `
     <div class="reports-section">
-      <div class="reports-title">Conditions Reports</div>
+      <div class="reports-title">Recent Shop Updates</div>
       ${lines}
       <span class="reports-all-link" onclick="openReportsModal()">View all reports →</span>
     </div>

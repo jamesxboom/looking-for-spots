@@ -439,91 +439,71 @@ def _match_rivers(text):
     return [kw for kw in RIVER_KEYWORDS if kw in text_lower]
 
 
-# ── Report summarization ──────────────────────────────────────
-# We store the raw scraped content internally but serve only short,
-# original-language condition summaries to the frontend.  This avoids
-# reproducing shop report text verbatim while still giving users
-# useful at-a-glance info.
+# ── Report excerpt extraction ─────────────────────────────────
+# Architectural decision (2026-04-28): we previously generated synthesized
+# summaries by extracting condition keywords + fly patterns and re-assembling
+# them into algorithm-authored sentences ("Fishing reported as good. Try
+# caddis, midge."). That violated the project's core rule that hatches/flies
+# only appear when the SHOP says them — not when our algorithm says them.
+#
+# Replacement: pull a short verbatim excerpt (1-2 sentences) from the shop's
+# own text. Every word a user reads is the shop's. If we can't extract clean
+# excerpt text, we fall back to a neutral "Recent update available." line —
+# never invented conditions, never invented fly recommendations.
 
-_CONDITION_PATTERNS = [
-    # Fishing quality
-    (re.compile(r'\b(excellent|outstanding|incredible|phenomenal|epic)\b', re.I), "excellent"),
-    (re.compile(r'\b(very good|great|fantastic|superb)\b', re.I), "very good"),
-    (re.compile(r'\b(good|solid|steady|consistent|productive)\b', re.I), "good"),
-    (re.compile(r'\b(fair|decent|moderate|ok|average)\b', re.I), "fair"),
-    (re.compile(r'\b(slow|tough|poor|challenging|difficult|off)\b', re.I), "slow"),
-    (re.compile(r'\b(blown out|unfishable|closed|too high|flooding|muddy)\b', re.I), "unfishable"),
-]
+_SENTENCE_END = re.compile(r'(?<=[.!?])\s+(?=[A-Z])')
+_WHITESPACE = re.compile(r'\s+')
 
-_HATCH_PATTERNS = re.compile(
-    r'\b(BWO|PMD|caddis|mayfl(?:y|ies)|stone ?fl(?:y|ies)|midge|baetis|'
-    r'hex|pale morning dun|blue wing(?:ed)? olive|golden stone|sally|'
-    r'october caddis|green drake|trico|callibaetis|chironomid|streamer|'
-    r'nymph|dry (?:fly|flies)|hopper|ant|beetle|terrestrial|egg pattern|'
-    r'indicator|swing|euro)\b', re.I
-)
 
-_FLOW_PATTERN = re.compile(r'(\d[\d,]*)\s*(?:cfs|CFS)')
-_CLARITY_PATTERNS = re.compile(r'\b(clear|stained|off-color|murky|muddy|turbid|visibility|vis)\b', re.I)
+def _extract_excerpt(raw_text, max_chars=220):
+    """
+    Return a verbatim excerpt (1-2 sentences) from the shop's own text.
+    Prefers a clean sentence boundary; falls back to character-bounded
+    truncation with an ellipsis if no good break is found.
+    No keyword extraction. No re-authoring. The shop's words, period.
+    """
+    if not raw_text:
+        return ""
+
+    # Normalize whitespace, strip surrounding noise
+    text = _WHITESPACE.sub(" ", raw_text).strip()
+    if not text:
+        return ""
+
+    # Prefer sentence-bounded excerpt
+    sentences = _SENTENCE_END.split(text)
+    excerpt = ""
+    for s in sentences:
+        candidate = (excerpt + " " + s).strip() if excerpt else s.strip()
+        if len(candidate) > max_chars and excerpt:
+            break
+        excerpt = candidate
+        if len(excerpt) >= max_chars * 0.6 and excerpt.rstrip().endswith((".", "!", "?")):
+            break
+
+    # If a single sentence is already too long, truncate at last space
+    if len(excerpt) > max_chars + 40:
+        cut = excerpt.rfind(" ", 0, max_chars)
+        if cut > max_chars * 0.5:
+            excerpt = excerpt[:cut].rstrip(",;:- ") + "…"
+        else:
+            excerpt = excerpt[:max_chars].rstrip() + "…"
+
+    return excerpt.strip()
 
 
 def _summarize_report(title, raw_snippet, rivers):
     """
-    Produce a short, original conditions summary from raw report content.
-    Returns a 1-2 sentence summary that does NOT reproduce the source text.
+    Build the user-facing snippet for a report. Now returns a verbatim excerpt
+    of the shop's text — never algorithm-authored conditions or fly recs.
+    `title` and `rivers` are accepted for backward compat but unused here.
     """
-    text = f"{title} {raw_snippet}"
-
-    # 1. Determine fishing quality
-    quality = None
-    for pattern, label in _CONDITION_PATTERNS:
-        if pattern.search(text):
-            quality = label
-            break
-
-    # 2. Find hatches/fly patterns mentioned
-    hatches = list(set(m.group(0).lower() for m in _HATCH_PATTERNS.finditer(text)))
-    hatches = hatches[:4]  # Cap at 4
-
-    # 3. Find flow mentions
-    flow_match = _FLOW_PATTERN.search(text)
-    flow_str = flow_match.group(1).replace(",", "") if flow_match else None
-
-    # 4. Clarity
-    clarity_match = _CLARITY_PATTERNS.search(raw_snippet)
-    clarity = clarity_match.group(0).lower() if clarity_match else None
-
-    # 5. Build summary
-    parts = []
-
-    # River context
-    river_name = rivers[0].title() if rivers else None
-
-    if quality:
-        if river_name:
-            parts.append(f"Fishing on the {river_name} reported as {quality}.")
-        else:
-            parts.append(f"Fishing reported as {quality}.")
-    elif river_name:
-        parts.append(f"Conditions update for the {river_name}.")
-    else:
-        parts.append("Conditions update available.")
-
-    details = []
-    if flow_str:
-        details.append(f"flows around {flow_str} cfs")
-    if clarity and clarity not in ("visibility", "vis"):
-        details.append(f"water {clarity}")
-    if hatches:
-        details.append(f"try {', '.join(hatches)}")
-
-    if details:
-        detail_str = details[0][0].upper() + details[0][1:]
-        if len(details) > 1:
-            detail_str += ", " + ", ".join(details[1:])
-        parts.append(detail_str + ".")
-
-    return " ".join(parts)
+    excerpt = _extract_excerpt(raw_snippet)
+    if excerpt:
+        return excerpt
+    # Honest fallback when shop content can't be extracted (e.g. RSS with
+    # empty body, scraper that only sees a link). Never invents conditions.
+    return "Recent update available — read the full report for details."
 
 
 def _parse_atom_feed(xml_text, source_name, base_url):
@@ -647,38 +627,83 @@ def _scrape_sonora_fly_reports():
     """
     url = "https://reports.sonorafly.com/"
     entries = []
+    base = "https://reports.sonorafly.com"
     try:
+        # Step 1: pull the index and harvest /report/<slug> paths.
+        # The index links wrap an image div, not text — so we extract by URL
+        # pattern, not anchor text. Slug → readable river name happens below.
         req = Request(url, headers={"User-Agent": "LookingForSpots/1.0"})
         resp = urlopen(req, timeout=20)
         html = resp.read().decode("utf-8", errors="replace")
 
-        # Sonora uses individual location report pages linked from the main page
-        # Look for river/location names and their report links
-        link_pattern = re.compile(
-            r'<a[^>]+href="([^"]*)"[^>]*>\s*([^<]*(?:River|Creek|Lake|Fork|Stanislaus|Tuolumne|Mokelumne|Merced|Walker|Carson)[^<]*)\s*</a>',
+        slug_paths = re.findall(r'href="(/report/[a-z0-9\-]+)"', html, re.IGNORECASE)
+        # Dedup while preserving order
+        seen = set()
+        unique_paths = []
+        for p in slug_paths:
+            if p not in seen:
+                seen.add(p)
+                unique_paths.append(p)
+
+        # Step 2: fetch each per-river page and parse title, date, body.
+        # Title format: "<h2>South Fork Stanislaus River Fishing Report - April 27th , 2026</h2>"
+        title_pattern = re.compile(
+            r'<h2[^>]*>\s*([^<]*?)\s+Fishing\s+Report\s*-\s*([^<]+?)\s*</h2>',
             re.IGNORECASE
         )
+        # Body: prefer the first <p> with substantive text (>=60 chars).
+        para_pattern = re.compile(r'<p[^>]*>([^<]{60,})</p>', re.IGNORECASE)
 
-        for match in link_pattern.finditer(html):
-            link = match.group(1).strip()
-            river_name = match.group(2).strip()
-            if not link or not river_name:
+        for path in unique_paths:
+            page_url = base + path
+            try:
+                preq = Request(page_url, headers={"User-Agent": "LookingForSpots/1.0"})
+                presp = urlopen(preq, timeout=15)
+                phtml = presp.read().decode("utf-8", errors="replace")
+            except Exception as page_err:
+                print(f"  [reports] Sonora subpage {path} fetch failed: {page_err}")
                 continue
-            if not link.startswith("http"):
-                link = url.rstrip("/") + "/" + link.lstrip("/")
 
-            full_text = river_name
+            tmatch = title_pattern.search(phtml)
+            if not tmatch:
+                # No dated report header — skip rather than emit a placeholder.
+                continue
+
+            river_name = tmatch.group(1).strip()
+            raw_date = tmatch.group(2).strip()
+
+            # Date: "April 27th , 2026" → strip ordinal suffix + stray spaces
+            cleaned_date = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', raw_date)
+            cleaned_date = re.sub(r'\s+,', ',', cleaned_date).strip()
+            parsed_date = ""
+            try:
+                dt = datetime.strptime(cleaned_date, "%B %d, %Y")
+                parsed_date = dt.strftime("%Y-%m-%d")
+            except ValueError:
+                parsed_date = ""
+
+            # Body: only consider paragraphs that appear AFTER the title h2.
+            # Sonora's pages embed sidebar/related-content paragraphs earlier
+            # in the HTML (Lundy Lake trip blurb, footer copyright, etc.) which
+            # would otherwise pollute the excerpt.
+            body_raw = ""
+            after_title = phtml[tmatch.end():]
+            body_match = para_pattern.search(after_title)
+            if body_match:
+                body_raw = strip_html(body_match.group(1))
+
+            full_text = f"{river_name} {body_raw}"
             rivers = _match_rivers(full_text)
-
-            summary = f"Conditions update for the {river_name}." if rivers else f"Conditions update for {river_name}."
+            summary = _summarize_report(river_name, body_raw, rivers)
 
             entries.append({
-                "title": f"{river_name} Conditions",
-                "date": datetime.now().strftime("%Y-%m-%d"),
+                "title": f"{river_name} Fishing Report",
+                "date": parsed_date,
                 "snippet": summary,
                 "source": "Local shop report",
-                "url": "",
+                "url": page_url,
                 "rivers_mentioned": rivers,
+                "_shop": "Sonora Fly Co",
             })
 
         print(f"  [reports] Sonora Fly Co (scrape): {len(entries)} reports found")
